@@ -5,8 +5,8 @@ export default {
     username: null,
     access_csrf: localStorage.getItem('access_csrf') === "null" ? null : localStorage.getItem('access_csrf'),
     refresh_csrf: localStorage.getItem('refresh_csrf') === "null" ? null : localStorage.getItem('refresh_csrf'),
-    isAuthenticated: false
-  },  
+    isAuthenticated: localStorage.getItem('isAuthenticated') === "true" ? true : false
+  }, 
   mutations: {
     setUserId(state, id) {
       if (id !== undefined) state.userId = id;
@@ -28,6 +28,22 @@ export default {
     },
     setAuthentication(state, status) {
       state.isAuthenticated = status;
+      localStorage.setItem('isAuthenticated', status);
+      if (status) {
+        // Increment the counter when user is authenticated
+        let count = localStorage.getItem('authCount') ? parseInt(localStorage.getItem('authCount')) : 0;
+        count++;
+        localStorage.setItem('authCount', count);
+
+        // Check if the counter exceeds the limit
+        if (count > 5) {
+          state.isAuthenticated = false;
+          localStorage.setItem('isAuthenticated', false);
+          localStorage.removeItem('authCount'); // Reset the counter
+        }
+      } else {
+        localStorage.removeItem('authCount'); // Reset the counter when user is not authenticated
+      }
     }
   },  
   actions: {
