@@ -28,22 +28,6 @@ export default {
     },
     setAuthentication(state, status) {
       state.isAuthenticated = status;
-      localStorage.setItem('isAuthenticated', status);
-      if (status) {
-        // Increment the counter when user is authenticated
-        let count = localStorage.getItem('authCount') ? parseInt(localStorage.getItem('authCount')) : 0;
-        count++;
-        localStorage.setItem('authCount', count);
-
-        // Check if the counter exceeds the limit
-        if (count > 5) {
-          state.isAuthenticated = false;
-          localStorage.setItem('isAuthenticated', false);
-          localStorage.removeItem('authCount'); // Reset the counter
-        }
-      } else {
-        localStorage.removeItem('authCount'); // Reset the counter when user is not authenticated
-      }
     }
   },  
   actions: {
