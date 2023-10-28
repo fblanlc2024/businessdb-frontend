@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import EntryPage from '../components/EntryPage.vue';
 import ManageAccount from '../components/ManageAccount.vue';
 import PostingPage from '../components/PostingPage.vue';
+import EventBus from '../eventBus'; // Import the EventBus
 
 const routes = [
   { path: '/', name: 'EntryPage', component: EntryPage },
@@ -39,6 +40,14 @@ router.beforeEach((to, from, next) => {
   } else {
     next(); // Allow access by default
   }
+});
+
+// Listen to the token-refresh-failed event from the EventBus
+EventBus.on('token-refresh-failed', () => {
+    store.commit('accounts/setAuthentication', false);
+    if (router.currentRoute.value.path !== '/') {
+        router.push('/');
+    }
 });
 
 export default router;

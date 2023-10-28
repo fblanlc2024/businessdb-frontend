@@ -1,4 +1,5 @@
 import axios from 'axios';
+import EventBus from './eventBus';
 import { store } from './main';
 
 // Create an Axios instance
@@ -30,6 +31,7 @@ function refreshToken() {
     });
 }
 
+
 instance.interceptors.response.use(
     response => {
         return response;
@@ -48,7 +50,13 @@ instance.interceptors.response.use(
             });
         }
 
-        // If error is something other than 401, or it's a retry request that failed, or it's a failed token_refresh, reject
+        // If the error is from the /token_refresh endpoint and it's a 401
+        if (error.response.status === 401 && originalRequest.url === '/token_refresh') {
+            EventBus.emit('token-refresh-failed');
+            return Promise.reject(error);
+        }
+
+        // If error is something other than 401, or it's a retry request that failed, reject
         return Promise.reject(error);
     }
 );
