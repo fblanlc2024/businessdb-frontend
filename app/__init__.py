@@ -1,5 +1,6 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, session
+from flask_session import Session
 from flask_cors import CORS
 from pymongo import MongoClient
 import dotenv
@@ -28,6 +29,7 @@ app.config['JWT_TOKEN_LOCATION'] = ["cookies"]
 app.config['JWT_HEADER_NAME'] = 'Authorization'
 app.config['JWT_HEADER_TYPE'] = 'Bearer'
 
+Session(app)
 
 if not app.secret_key:
     raise ValueError("No secret key set for Flask application")

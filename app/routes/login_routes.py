@@ -41,7 +41,8 @@ def login():
 
 @login_routes_bp.route("/login/callback")
 def callback():
-    google = OAuth2Session(CLIENT_ID, state=session['oauth_state'], redirect_uri=REDIRECT_URI)
+    oauth_state_from_cookie = request.cookies.get('oauth_state')
+    google = OAuth2Session(CLIENT_ID, state=oauth_state_from_cookie, redirect_uri=REDIRECT_URI)
     token = google.fetch_token(TOKEN_URI, client_secret=CLIENT_SECRET, authorization_response=request.url)
     user_info = google.get(USER_INFO).json()
 
@@ -73,6 +74,7 @@ def callback():
         })
 
     response = make_response(redirect('https://localhost:8080/posting'))
+    response.delete_cookie('oauth_state')
     expiration = datetime.now() + timedelta(days=7)
 
     response.set_cookie('username', existing_account["account_name"], expires=expiration, samesite='None', secure=True)
@@ -81,12 +83,6 @@ def callback():
     response.set_cookie('refresh_token_cookie', value=refresh_token, httponly=True, max_age=timedelta(days=30).total_seconds(), samesite='None', secure=True)
 
     return response
-
-# @login_routes_bp.route('/get_user_from_session', methods=['GET'])
-# def get_user_from_session():
-#     user = session.get('user', {})
-#     print("Returning from session:", user)
-#     return jsonify(user)
 
 @login_routes_bp.route('/google_token_refresh', methods=['POST'])
 def google_token_refresh():
