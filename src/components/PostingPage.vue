@@ -6,9 +6,9 @@
 </template>
 
 <script>
-import { onMounted, computed } from 'vue';
-import { useStore } from 'vuex';
+import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 // import axios from 'axios';
 import Cookies from 'js-cookie';
 import api from '../api.js';
@@ -55,7 +55,7 @@ setup() {
     })
     .catch(error => {
         console.error('Error fetching current user:', error);
-        // logOut();  // Log the user out or redirect them as needed.
+        // logOut(); //Taken care of by the router guard.
     });
 };
 

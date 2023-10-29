@@ -28,7 +28,8 @@ export default {
     },
     setAuthentication(state, status) {
       state.isAuthenticated = status;
-    }
+      localStorage.setItem('isAuthenticated', status);
+    }  
   },  
   actions: {
     setUserCredentials({ commit }, { id, username, access_csrf, refresh_csrf }) {
@@ -41,6 +42,7 @@ export default {
     logOut({commit}) {
       localStorage.removeItem('access_csrf');
       localStorage.removeItem('refresh_csrf');
+      localStorage.removeItem('isAutneticated');
 
       commit('setUserId', null);
       commit('setUsername', null);

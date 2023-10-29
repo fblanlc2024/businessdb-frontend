@@ -1,9 +1,9 @@
-import store from '@/store/accounts.js';
 import { createRouter, createWebHistory } from 'vue-router';
 import EntryPage from '../components/EntryPage.vue';
 import ManageAccount from '../components/ManageAccount.vue';
 import PostingPage from '../components/PostingPage.vue';
 import EventBus from '../eventBus'; // Import the EventBus
+import { store } from '../main';
 
 const routes = [
   { path: '/', name: 'EntryPage', component: EntryPage },
@@ -17,9 +17,11 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = store.state.isAuthenticated; // Get the authentication status from the Vuex store
+  const isAuthenticated = store.state.accounts.isAuthenticated;
+  console.log("isAuthenticated:", isAuthenticated);
+  console.log("Navigating to:", to.path);
 
-  // If the user is authenticated and tries to visit the root, redirect to /posting
+  // If the user is authenticated and tries to visit the root path, redirect to '/posting'
   if (isAuthenticated && to.path === '/') {
     next('/posting');
     return;
@@ -27,13 +29,8 @@ router.beforeEach((to, from, next) => {
 
   // Check if the route requires authentication
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    // Check if the user is not authenticated
     if (!isAuthenticated) {
-      if (to.path !== '/') { // Prevent infinite loop by checking if the user is already on the login page
-        next({ path: '/' }); // Redirect to LoginPage
-      } else {
-        next(); // Allow access if the user is already on the login page
-      }
+      next({ path: '/' });
     } else {
       next(); // Allow access if the user is authenticated
     }
