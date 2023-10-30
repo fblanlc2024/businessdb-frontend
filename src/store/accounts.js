@@ -5,7 +5,8 @@ export default {
     username: null,
     access_csrf: localStorage.getItem('access_csrf') === "null" ? null : localStorage.getItem('access_csrf'),
     refresh_csrf: localStorage.getItem('refresh_csrf') === "null" ? null : localStorage.getItem('refresh_csrf'),
-    isAuthenticated: localStorage.getItem('isAuthenticated') === "true" ? true : false
+    isAuthenticated: localStorage.getItem('isAuthenticated') === "true" ? true : false,
+    isGoogleLogin: localStorage.getItem('isGoogleLogin') === "true" ? true : false
   }, 
   mutations: {
     setUserId(state, id) {
@@ -29,7 +30,11 @@ export default {
     setAuthentication(state, status) {
       state.isAuthenticated = status;
       localStorage.setItem('isAuthenticated', status);
-    }  
+    },
+    setGoogleLogin(state, status) {
+      state.isGoogleLogin = status;
+      localStorage.setItem('isGoogleLogin', status);
+    },
   },  
   actions: {
     setUserCredentials({ commit }, { id, username, access_csrf, refresh_csrf }) {
@@ -56,6 +61,7 @@ export default {
     getUsername: state => state.username,
     getAccessCSRF: state => state.access_csrf,
     getRefreshCSRF: state => state.refresh_csrf,
-    getAuthentication: state => state.isAuthenticated
+    getAuthentication: state => state.isAuthenticated,
+    getGoogleLogin: state => state.isGoogleLogin
   }
 }

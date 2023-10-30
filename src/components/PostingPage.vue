@@ -10,7 +10,7 @@ import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 // import axios from 'axios';
-import Cookies from 'js-cookie';
+// import Cookies from 'js-cookie';
 import api from '../api.js';
 
 export default {
@@ -33,7 +33,7 @@ setup() {
 
     if (!csrf_access) {
         console.error('Access CSRF token is missing.');
-        // Handle this situation, e.g., log the user out or show an error message.
+        fetchUserFromGoogleSession();
         return;
     }
 
@@ -57,33 +57,33 @@ setup() {
         console.error('Error fetching current user:', error);
         // logOut(); //Taken care of by the router guard.
     });
-};
-
-
-  const fetchUserFromGoogleSession = () => {
-    console.log("gollogolol session!");
-    // Extract values from the cookies
-    const username = Cookies.get('username');
-    const id = Cookies.get('id');
-    const jwtToken = Cookies.get('jwt_token_google');
-
-    // Log the extracted values for debugging
-    console.log('Extracted from cookies:', {username, id, jwtToken});
-
-    if (username && id && jwtToken) {
-        // Update the Vuex store with the user's credentials
-        store.dispatch('accounts/setUserCredentials', {
-            id: id,
-            username: username,
-            accessToken: jwtToken
-        });
-
-    } else {
-        console.error('Failed to retrieve user data from cookies.');
-        // Redirect or handle the error as needed
-        // logOut(); // Uncomment if you want to logout the user in case of an error
-    }
   };
+
+
+  // Method to fetch user data from Google session
+  const fetchUserFromGoogleSession = () => {
+    console.log("Fetching Google session user...");
+
+    api.get('/google_user_data', {
+      withCredentials: true
+    })
+    .then(response => {
+      const { data } = response;
+      // Update the Vuex store with the user's credentials
+      store.dispatch('accounts/setUserCredentials', {
+          id: data.account_id,
+          username: data.account_name,
+          isAuthenticated: true
+      });
+      console.log("Updated store state with Google user data:", store.state.accounts);
+    })
+    .catch(error => {
+      console.error('Error fetching Google session user:', error);
+      // If the error is due to an expired token, the interceptor should handle the refresh.
+      // If the refresh fails or there's another error, handle it accordingly.
+    });
+  };
+
 
   const logOut = () => {
     store.dispatch('accounts/logOut');
