@@ -1,5 +1,5 @@
 from flask import Flask, Blueprint, redirect, request, session, url_for, jsonify, make_response, current_app
-from flask_jwt_extended import create_refresh_token, get_jwt, verify_jwt_in_request, get_jwt_identity, create_access_token
+from flask_jwt_extended import create_refresh_token, get_jwt, verify_jwt_in_request, get_jwt_identity, create_access_token, get_csrf_token, set_access_cookies, set_refresh_cookies, jwt_required
 import requests
 from requests_oauthlib import OAuth2Session
 import uuid
@@ -26,7 +26,6 @@ def login():
     oauth_state = OAuth2Session(CLIENT_ID).new_state()
     scope = "https://www.googleapis.com/auth/userinfo.profile"
     google = OAuth2Session(CLIENT_ID, state=oauth_state, redirect_uri=REDIRECT_URI, scope=scope)
-    current_app.logger.info(f"Received REDIRECT_URI: {REDIRECT_URI}")
     authorization_url, state = google.authorization_url(
         AUTH_URI,
         access_type="offline",
@@ -47,7 +46,8 @@ def callback():
     user_info = google.get(USER_INFO).json()
 
     existing_account = db.google_accounts.find_one({"google_id": user_info['id']})
-    
+    logging.debug(f"Existing account: {existing_account}")
+
     # Create new user if not exists
     if not existing_account:
         unique_account_id = str(uuid.uuid4())
@@ -59,30 +59,34 @@ def callback():
         db.google_accounts.insert_one(google_account)
         existing_account = google_account
 
-    jwt_token = create_access_token(identity=existing_account["account_id"])
+    access_token = create_access_token(identity=existing_account["account_id"])
+    refresh_token = create_refresh_token(identity=existing_account["account_id"])
 
-    existing_refresh_token = refresh_tokens_collection.find_one({'userId': existing_account["account_id"]})
-    if existing_refresh_token:
-        refresh_token = existing_refresh_token['token']
-    else:
-        refresh_token = create_refresh_token(identity=existing_account["account_id"])
-        refresh_tokens_collection.insert_one({
-            "token": refresh_token,
-            "userId": existing_account["account_id"],
-            "expiresAt": datetime.utcnow() + timedelta(days=30),
-            "usage_count": 1
-        })
+    # Create CSRF tokens for the access and refresh tokens
+    # access_csrf = get_csrf_token(access_token)
+    # refresh_csrf = get_csrf_token(refresh_token)
 
-    response = make_response(redirect('https://localhost:8080/posting'))
-    response.delete_cookie('oauth_state')
-    expiration = datetime.now() + timedelta(days=7)
+    # Create a response
+    response = make_response()
 
-    response.set_cookie('username', existing_account["account_name"], expires=expiration, samesite='None', secure=True)
-    response.set_cookie('id', existing_account["account_id"], expires=expiration, samesite='None', secure=True)
-    response.set_cookie('jwt_token', jwt_token, expires=expiration, samesite='None', secure=True)
-    response.set_cookie('refresh_token_cookie', value=refresh_token, httponly=True, max_age=timedelta(days=30).total_seconds(), samesite='None', secure=True)
+    # Set the JWT and refresh tokens as HttpOnly cookies
+    access_expiration_time = timedelta(seconds=1)
+    refresh_expiration_time = timedelta(days=30)
+    set_access_cookies(response, access_token, max_age=access_expiration_time.total_seconds())
+    set_refresh_cookies(response, refresh_token, max_age=refresh_expiration_time.total_seconds())
 
-    return response
+    # Set user details in non-HttpOnly cookies for frontend access
+    response.set_cookie('google_id', value=existing_account["google_id"], max_age=access_expiration_time.total_seconds(), samesite='None', secure=True)
+    response.set_cookie('account_name', value=existing_account["account_name"], max_age=access_expiration_time.total_seconds(), samesite='None', secure=True)
+    response.set_cookie('account_id', value=existing_account["account_id"], max_age=access_expiration_time.total_seconds(), samesite='None', secure=True)
+
+    # Set CSRF tokens in non-HttpOnly cookies for frontend access
+    # response.set_cookie('access_csrf_cookie', value=access_csrf, max_age=access_expiration_time.total_seconds(), samesite='None', secure=True)
+    # response.set_cookie('refresh_csrf_cookie', value=refresh_csrf, max_age=refresh_expiration_time.total_seconds(), samesite='None', secure=True)
+
+    # Redirect to the frontend application with the cookies set
+    response.headers["Location"] = "https://localhost:8080/posting"
+    return response, 302
 
 @login_routes_bp.route('/google_token_refresh', methods=['POST'])
 def google_token_refresh():
@@ -158,3 +162,29 @@ def google_token_refresh():
 
     except Exception as e:
         return jsonify({'message': str(e)}), 401
+
+@login_routes_bp.route('/google_user_data')
+@jwt_required()  # Require a valid access token to access this route
+def google_user_data():
+    try:
+        # Get the identity of the current user from the access token
+        current_user_id = get_jwt_identity()
+        
+        # Fetch the user data from the database using the identity
+        user_data = db.google_accounts.find_one({"account_id": current_user_id})
+        
+        if not user_data:
+            return jsonify({'message': 'User not found'}), 404
+        
+        # Prepare the user data to send back to the client
+        response_data = {
+            'google_id': user_data["google_id"],
+            'account_name': user_data["account_name"],
+            'account_id': user_data["account_id"]
+        }
+        
+        return jsonify(response_data), 200
+
+    except Exception as e:
+        current_app.logger.error(f'Error fetching user data: {str(e)}')
+        return jsonify({'message': 'Internal server error'}), 500
