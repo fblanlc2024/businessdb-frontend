@@ -48,6 +48,9 @@ def callback():
     existing_account = db.google_accounts.find_one({"google_id": user_info['id']})
     logging.debug(f"Existing account: {existing_account}")
 
+
+    access_expiration_time = timedelta(minutes=1)
+    refresh_expiration_time = timedelta(days=30)
     # Create new user if not exists
     if not existing_account:
         unique_account_id = str(uuid.uuid4())
@@ -59,19 +62,20 @@ def callback():
         db.google_accounts.insert_one(google_account)
         existing_account = google_account
 
+    # Generate tokens
     access_token = create_access_token(identity=existing_account["account_id"])
     refresh_token = create_refresh_token(identity=existing_account["account_id"])
 
-    # Create CSRF tokens for the access and refresh tokens
-    # access_csrf = get_csrf_token(access_token)
-    # refresh_csrf = get_csrf_token(refresh_token)
+    # Store the refresh token in the database with an initial usage count of 0
+    refresh_token_data = {
+        "account_id": existing_account["account_id"],
+        "token": refresh_token,
+        "expiresAt": datetime.utcnow() + refresh_expiration_time,
+        "usage_count": 0
+    }
+    refresh_tokens_collection.insert_one(refresh_token_data)
 
-    # Create a response
     response = make_response()
-
-    # Set the JWT and refresh tokens as HttpOnly cookies
-    access_expiration_time = timedelta(seconds=1)
-    refresh_expiration_time = timedelta(days=30)
     set_access_cookies(response, access_token, max_age=access_expiration_time.total_seconds())
     set_refresh_cookies(response, refresh_token, max_age=refresh_expiration_time.total_seconds())
 
@@ -79,10 +83,6 @@ def callback():
     response.set_cookie('google_id', value=existing_account["google_id"], max_age=access_expiration_time.total_seconds(), samesite='None', secure=True)
     response.set_cookie('account_name', value=existing_account["account_name"], max_age=access_expiration_time.total_seconds(), samesite='None', secure=True)
     response.set_cookie('account_id', value=existing_account["account_id"], max_age=access_expiration_time.total_seconds(), samesite='None', secure=True)
-
-    # Set CSRF tokens in non-HttpOnly cookies for frontend access
-    # response.set_cookie('access_csrf_cookie', value=access_csrf, max_age=access_expiration_time.total_seconds(), samesite='None', secure=True)
-    # response.set_cookie('refresh_csrf_cookie', value=refresh_csrf, max_age=refresh_expiration_time.total_seconds(), samesite='None', secure=True)
 
     # Redirect to the frontend application with the cookies set
     response.headers["Location"] = "https://localhost:8080/posting"
