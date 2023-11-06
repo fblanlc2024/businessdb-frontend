@@ -10,8 +10,8 @@ const instance = axios.create({
 
 // Method to refresh the Google access token
 function refreshGoogleAccessToken() {
-  const csrfRefresh = Cookies.get('csrf_refresh_token');
-  if (!csrfRefresh) {
+  const csrfRefreshGoogle = Cookies.get('csrf_refresh_token');
+  if (!csrfRefreshGoogle) {
     console.error('Refresh CSRF token is missing.');
     EventBus.emit('token-refresh-failed');
     return Promise.reject('CSRF token missing');
@@ -19,7 +19,7 @@ function refreshGoogleAccessToken() {
 
   return instance.post('/google_token_refresh', {}, {
     headers: {
-      'X-CSRF-TOKEN': csrfRefresh
+      'X-CSRF-TOKEN': csrfRefreshGoogle
     },
     withCredentials: true
   })
@@ -43,13 +43,28 @@ function refreshGoogleAccessToken() {
 function refreshToken() {
   console.log("[Interceptor] Attempting to refresh token...");
 
-  // Get the CSRF token for the refresh token from your Vuex store or wherever you've stored it
-  const csrf_refresh = store.getters['accounts/getRefreshCSRF'];
-  console.log("LOOK AT THIS CSRF REFRESH", csrf_refresh);
+  // Try to get the CSRF token for the refresh token from the Vuex store
+  let csrf_refresh = store.getters['accounts/getRefreshCSRF'];
+
+  // If it's not in the Vuex store, try to get it from the cookies
+  if (!csrf_refresh) {
+    csrf_refresh = Cookies.get('csrf_refresh_token');
+    var testName = Cookies.get('account_name');
+    console.log("[Interceptor] CSRF refresh token fetched from cookies:", csrf_refresh);
+    console.log("tested token for cookie retrieval", testName);
+  }
+
+  // If we still don't have the CSRF token, we can't proceed with the refresh
+  if (!csrf_refresh) {
+    console.error("[Interceptor] Refresh CSRF token is missing.");
+    EventBus.emit('token-refresh-failed');
+    return Promise.reject('Refresh CSRF token missing');
+  }
 
   // Check if the CSRF token is for Google's refresh token
-  if (csrf_refresh === Cookies.get('refresh_csrf_cookie')) {
-    return refreshGoogleAccessToken(); // Use the Google token refresh method
+  if (csrf_refresh === Cookies.get('csrf_refresh_token')) {
+    // Use the Google token refresh method
+    return refreshGoogleAccessToken();
   } else {
     // Handle non-Google token refresh here
     return instance.post('/token_refresh', {}, {
