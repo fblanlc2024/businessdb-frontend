@@ -159,15 +159,13 @@ def google_user_data():
     try:
         current_app.logger.info("Fetching Google user data...")
 
-        # Extract the Google access token from the Authorization header
-        auth_header = request.headers.get('Authorization')
-        if not auth_header:
-            current_app.logger.warning("Authorization header is missing")
-            return jsonify({'message': 'Authorization header is missing'}), 401
+        # Extract the Google access token from HttpOnly cookie
+        google_access_token = request.cookies.get('access_token')
+        if not google_access_token:
+            current_app.logger.warning("Access token cookie is missing")
+            return jsonify({'message': 'Access token is missing'}), 401
 
-        # Extract the token part from the header
-        google_access_token = auth_header.split(" ")[1]
-        current_app.logger.info(f"Received Google access token: {google_access_token}")
+        current_app.logger.info("Received Google access token from cookie")
 
         # Verify the token
         request_client = google_auth_requests.Request()
@@ -204,3 +202,4 @@ def google_user_data():
     except Exception as e:
         current_app.logger.error(f"Error in google_user_data endpoint: {e}")
         return jsonify({'message': 'Internal server error'}), 500
+
