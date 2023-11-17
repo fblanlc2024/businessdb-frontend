@@ -10,26 +10,13 @@ const instance = axios.create({
 
 // Method to refresh the Google access token
 function refreshGoogleAccessToken() {
-  const csrfRefreshGoogle = Cookies.get('csrf_refresh_token');
-  if (!csrfRefreshGoogle) {
-    console.error('Refresh CSRF token is missing.');
-    EventBus.emit('token-refresh-failed');
-    return Promise.reject('CSRF token missing');
-  }
-
   return instance.post('/google_token_refresh', {}, {
-    headers: {
-      'X-CSRF-TOKEN': csrfRefreshGoogle
-    },
     withCredentials: true
   })
   .then(response => {
     console.log('Token refreshed successfully:', response.data);
-    // Update CSRF tokens in the Vuex store if needed
-    store.dispatch('accounts/updateCsrfTokens', {
-      access_csrf: response.data.csrf_tokens.access_csrf,
-      refresh_csrf: response.data.csrf_tokens.refresh_csrf
-    });
+    // Update the stored Google access token
+    localStorage.setItem('google_access_token', response.data.access_token);
     return response.data;
   })
   .catch(error => {

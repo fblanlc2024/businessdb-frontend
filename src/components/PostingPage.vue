@@ -60,14 +60,16 @@ setup() {
   };
 
 
-  // Method to fetch user data from Google session
   const fetchUserFromGoogleSession = () => {
-    console.log("Fetching Google session user...");
+  console.log("Fetching Google session user...");
 
-    api.get('/google_user_data', {
-      withCredentials: true
-    })
-    .then(response => {
+  const googleAccessToken = localStorage.getItem('google_access_token');
+
+  api.get('/google_user_data', {
+    headers: { 'Authorization': `Bearer ${googleAccessToken}` },
+    withCredentials: true
+  })
+  .then(response => {
       const { data } = response;
       // Update the Vuex store with the user's credentials
       store.dispatch('accounts/setUserCredentials', {
@@ -79,11 +81,8 @@ setup() {
     })
     .catch(error => {
       console.error('Error fetching Google session user:', error);
-      // If the error is due to an expired token, the interceptor should handle the refresh.
-      // If the refresh fails or there's another error, handle it accordingly.
     });
   };
-
 
   const logOut = () => {
     store.dispatch('accounts/logOut');
