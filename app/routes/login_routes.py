@@ -8,6 +8,9 @@ from app.models import GoogleAccount
 from datetime import datetime, timedelta
 import logging
 
+from requests_oauthlib import OAuth2Session
+from oauthlib.oauth2 import WebApplicationClient
+
 # OAuth2 client setup
 CLIENT_ID = '898438500076-f6on6105fpi2e913mi7kudtva2ti0qve.apps.googleusercontent.com'  # Get this from Google Developers Console
 CLIENT_SECRET = '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'  # Get this from Google Developers Console
@@ -49,7 +52,7 @@ def callback():
     logging.debug(f"Existing account: {existing_account}")
 
 
-    access_expiration_time = timedelta(minutes=1)
+    access_expiration_time = timedelta(seconds=5)
     refresh_expiration_time = timedelta(days=30)
     # Create new user if not exists
     if not existing_account:
@@ -62,18 +65,22 @@ def callback():
         db.google_accounts.insert_one(google_account)
         existing_account = google_account
 
-    # Generate tokens
-    access_token = create_access_token(identity=existing_account["account_id"])
-    refresh_token = create_refresh_token(identity=existing_account["account_id"])
+    try:
+            # Generate tokens
+        access_token = create_access_token(identity=existing_account["account_id"])
+        refresh_token = create_refresh_token(identity=existing_account["account_id"])
 
-    # Store the refresh token in the database with an initial usage count of 0
-    refresh_token_data = {
-        "account_id": existing_account["account_id"],
-        "token": refresh_token,
-        "expiresAt": datetime.utcnow() + refresh_expiration_time,
-        "usage_count": 0
-    }
-    refresh_tokens_collection.insert_one(refresh_token_data)
+        # Store the refresh token in the database with an initial usage count of 0
+        refresh_token_data = {
+            "account_id": existing_account["account_id"],
+            "token": refresh_token,
+            "expiresAt": datetime.utcnow() + refresh_expiration_time,
+            "usage_count": 0
+        }
+        refresh_tokens_collection.insert_one(refresh_token_data)
+    except Exception as e:
+        logging.error(f"Failed to insert refresh token into the database: {e}")
+        return 500
 
     response = make_response()
     set_access_cookies(response, access_token, max_age=access_expiration_time.total_seconds())
@@ -93,6 +100,9 @@ def google_token_refresh():
     try:
         # Extract CSRF token from headers
         received_csrf_token = request.headers.get('X-CSRF-TOKEN')
+        refresh_token_cookie = request.cookies.get('refresh_token_cookie')
+        current_app.logger.info(f'Received refresh CSRF cookie: {received_csrf_token}')
+        current_app.logger.info(f'Received refresh token cookie: {refresh_token_cookie}')
         
         if not received_csrf_token:
             return jsonify({'message': 'CSRF token missing'}), 403
