@@ -45,7 +45,7 @@ def create_account():
     if existing_user:
         return jsonify({'message': 'Username already exists'}), 400
 
-    hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(15))
     new_account = Account(username, hashed_pw)
     accounts_collection.insert_one(new_account.to_dict())
 
@@ -92,7 +92,7 @@ def update_account():
     if new_username:
         updates['username'] = new_username
     if new_password:
-        hashed_pw = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+        hashed_pw = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt(15))
         updates['password_hash'] = hashed_pw
 
     accounts_collection.update_one({'username': username}, {'$set': updates})
@@ -131,7 +131,7 @@ def reset_password():
     if not new_password:
         return jsonify({'message': 'New password is required'}), 400
 
-    hashed_pw = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+    hashed_pw = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt(15))
     accounts_collection.update_one({'username': username}, {'$set': {'password_hash': hashed_pw}})
     return jsonify({'message': 'Password updated successfully'}), 200
 
