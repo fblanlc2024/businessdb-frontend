@@ -258,6 +258,7 @@ export default {
     };
 
     const redirectToGoogleAuth = () => {
+      store.commit('accounts/setGoogleLogin', true);
       window.location.href = googleOAuthEndpoint;
     };
 

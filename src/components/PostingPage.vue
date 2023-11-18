@@ -6,11 +6,11 @@
 </template>
 
 <script>
+import axios from 'axios';
+import Cookies from 'js-cookie';
 import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
-// import axios from 'axios';
-// import Cookies from 'js-cookie';
 import api from '../api.js';
 
 export default {
@@ -49,13 +49,11 @@ setup() {
         store.dispatch('accounts/setUserCredentials', {
             id: data.id,
             username: data.logged_in_as,
-            // Do not overwrite the CSRF tokens here
         });
         console.log("Updated store state with JWT user data:", store.state.accounts);
     })
     .catch(error => {
         console.error('Error fetching current user:', error);
-        // logOut(); //Taken care of by the router guard.
     });
   };
 
@@ -63,20 +61,18 @@ setup() {
   const fetchUserFromGoogleSession = () => {
   console.log("Fetching Google session user...");
 
-  const googleAccessToken = localStorage.getItem('google_access_token');
-
   api.get('/google_user_data', {
-    headers: { 'Authorization': `Bearer ${googleAccessToken}` },
     withCredentials: true
   })
   .then(response => {
       const { data } = response;
-      // Update the Vuex store with the user's credentials
+      const loggedIn = Cookies.get('logged_in');
       store.dispatch('accounts/setUserCredentials', {
-          id: data.account_id,
-          username: data.account_name,
-          isAuthenticated: true
+        id: data.account_id,
+        username: data.account_name,
+        isAuthenticated: true
       });
+      Cookies.remove(loggedIn);
       console.log("Updated store state with Google user data:", store.state.accounts);
     })
     .catch(error => {
@@ -85,9 +81,17 @@ setup() {
   };
 
   const logOut = () => {
-    store.dispatch('accounts/logOut');
-    router.push('/');
-  }
+  axios.post('https://localhost:5000/logout', {}, { withCredentials: true })
+    .then(response => {
+      console.log(response.data.message);
+      store.dispatch('accounts/logOut');
+      router.push('/');
+    })
+    .catch(error => {
+      console.error('Logout failed:', error);
+    });
+}
+
 
   onMounted(() => {
     fetchCurrentUser();

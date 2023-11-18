@@ -48,12 +48,14 @@ export default {
       localStorage.removeItem('access_csrf');
       localStorage.removeItem('refresh_csrf');
       localStorage.removeItem('isAutneticated');
+      localStorage.removeItem('isGoogleLogin');
 
       commit('setUserId', null);
       commit('setUsername', null);
       commit('setAccessCSRF', null);
       commit('setRefreshCSRF', null);
       commit('setAuthentication', false);
+      commit('setGoogleLogin', false);
     }    
   },
   getters: {
