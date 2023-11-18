@@ -13,6 +13,7 @@ from google.oauth2.credentials import Credentials
 from google.oauth2 import id_token
 from google.auth.exceptions import RefreshError
 import json
+import calendar
 
 # OAuth2 client setup
 CLIENT_ID = '898438500076-f6on6105fpi2e913mi7kudtva2ti0qve.apps.googleusercontent.com'
@@ -112,8 +113,9 @@ def callback():
 
     # Set refresh token in HttpOnly cookie
     # Note: Refresh tokens typically don't expire, but you can set a long duration
-    refresh_token_expiration = datetime.utcnow() + timedelta(months=6)  # Example: 30 days
+    refresh_token_expiration = add_months(datetime.utcnow(), 6)
     response.set_cookie('refresh_token', credentials.refresh_token, expires=refresh_token_expiration, httponly=True, secure=True, samesite='Lax')
+    response.set_cookie('logged_in', 'true', httponly=False, max_age=5, secure=True, samesite='None')
 
     return response
 
@@ -175,11 +177,12 @@ def google_user_data():
 
         # Extract the Google access token from HttpOnly cookie
         google_access_token = request.cookies.get('access_token')
+        current_app.logger.info(f"Received Google access token from cookie: {google_access_token}")
         if not google_access_token:
             current_app.logger.warning("Access token cookie is missing")
             return jsonify({'message': 'Access token is missing'}), 401
 
-        current_app.logger.info("Received Google access token from cookie")
+        # current_app.logger.info("Received Google access token from cookie")
 
         # Use the access token to fetch user data from Google's UserInfo API
         headers = {'Authorization': 'Bearer ' + google_access_token}
@@ -207,6 +210,7 @@ def google_user_data():
             'account_name': user_data["account_name"],
             'account_id': user_data["account_id"]
         }
+        current_app.logger.info(f"Le response data: {response_data}")
 
         return jsonify(response_data), 200
 
@@ -214,3 +218,22 @@ def google_user_data():
         current_app.logger.error(f"Error in google_user_data endpoint: {e}")
         return jsonify({'message': 'Internal server error'}), 500
 
+
+# Purges all of the cookies in case they logged in normally before
+@login_routes_bp.route('/logout', methods=['POST'])
+def logout():
+    response = make_response(jsonify({'message': 'Logged out successfully'}))
+    response.set_cookie('access_token', '', expires=0)
+    response.set_cookie('access_token_cookie', '', expires=0)
+    response.set_cookie('refresh_token', '', expires=0)
+    response.set_cookie('refresh_token_cookie', '', expires=0)
+    response.set_cookie('state', '', expires=0)
+    response.set_cookie('id_token', '', expires=0)
+    return response
+
+def add_months(source_date, months):
+    month = source_date.month - 1 + months
+    year = source_date.year + month // 12
+    month = month % 12 + 1
+    day = min(source_date.day, calendar.monthrange(year, month)[1])
+    return datetime(year, month, day)

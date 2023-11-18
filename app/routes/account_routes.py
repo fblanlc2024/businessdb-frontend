@@ -180,7 +180,7 @@ def token_login():
                 "token": refresh_token,
                 "userId": username,
                 "expiresAt": datetime.utcnow() + timedelta(days=30),
-                "usage_count": 1
+                "usage_count": 0
             })
 
         access_csrf = get_csrf_token(access_token)
@@ -237,7 +237,7 @@ def refresh_token():
             return jsonify({'message': 'Invalid refresh token'}), 401
         
         # Check if the token has been used too many times
-        if token_data.get('usage_count', 0) >= 5:
+        if token_data.get('usage_count', 0) >= 25:
             refresh_tokens_collection.delete_one({"token": received_refresh_token})
             return jsonify({'message': 'Refresh token has been used too many times. Please re-authenticate.'}), 401
 
