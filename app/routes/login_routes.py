@@ -11,6 +11,7 @@ import logging
 from google.auth.transport import requests as google_auth_requests
 from google.oauth2.credentials import Credentials
 from google.oauth2 import id_token
+from google.auth.exceptions import RefreshError
 import json
 
 # OAuth2 client setup
@@ -107,10 +108,11 @@ def callback():
 
     access_token_expiration = datetime.utcnow() + timedelta(seconds=seconds_until_expiry)
     response.set_cookie('access_token', credentials.token, expires=access_token_expiration, httponly=True, secure=True, samesite='Lax')
+    response.set_cookie('id_token', credentials.id_token, expires=access_token_expiration, httponly=True, secure=True, samesite='Lax')
 
     # Set refresh token in HttpOnly cookie
     # Note: Refresh tokens typically don't expire, but you can set a long duration
-    refresh_token_expiration = datetime.utcnow() + timedelta(days=30)  # Example: 30 days
+    refresh_token_expiration = datetime.utcnow() + timedelta(months=6)  # Example: 30 days
     response.set_cookie('refresh_token', credentials.refresh_token, expires=refresh_token_expiration, httponly=True, secure=True, samesite='Lax')
 
     return response
@@ -118,38 +120,50 @@ def callback():
 @login_routes_bp.route('/google_token_refresh', methods=['POST'])
 def google_token_refresh():
     try:
-        # Retrieve the refresh token from the HttpOnly cookie
         refresh_token = request.cookies.get('refresh_token')
         if not refresh_token:
             return jsonify({'message': 'Refresh token not found'}), 401
 
-        # Fetch the user's data from the database using the refresh token
+        # Retrieve user data using the refresh token
         user_data = db.google_accounts.find_one({"refresh_token": refresh_token})
         if not user_data:
             return jsonify({'message': 'User not found'}), 401
 
         user_id = user_data['account_id']
 
-        # Create credentials object
         credentials = Credentials(
-            None,  # No access token, we want to refresh
-            refresh_token=refresh_token,
-            token_uri=TOKEN_URI,
-            client_id=CLIENT_ID,
-            client_secret=CLIENT_SECRET
-        )
+            None, refresh_token=refresh_token, token_uri=TOKEN_URI,
+            client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
 
-        # Request a new access token
         request_client = google_auth_requests.Request()
-        credentials.refresh(request_client)
 
-        # Update the new access token in the database
+        try:
+            credentials.refresh(request_client)
+        except RefreshError:
+            # Refresh token is invalid, clear the refresh token cookie
+            response = make_response(jsonify({'message': 'Refresh token is invalid, please reauthenticate'}), 401)
+            response.set_cookie('refresh_token', '', expires=0, httponly=True, secure=True, samesite='Lax')
+            return response
+
+        # Refresh token is valid, update access token
         db.google_accounts.update_one(
             {"account_id": user_id},
             {"$set": {"access_token": credentials.token, "token_expiry": credentials.expiry}}
         )
+        # Create the response object
+        response = make_response(jsonify({'message': 'Token refreshed successfully'}))
 
-        return jsonify({'message': 'Token refreshed successfully', 'access_token': credentials.token})
+        # Calculate the expiration time for the new access token
+        expiry_timestamp = credentials.expiry.timestamp()
+        current_timestamp = datetime.utcnow().timestamp()
+        seconds_until_expiry = expiry_timestamp - current_timestamp
+
+        access_token_expiration = datetime.utcnow() + timedelta(seconds=seconds_until_expiry)
+
+        # Set the new access token in an HttpOnly cookie
+        response.set_cookie('access_token', credentials.token, expires=access_token_expiration, httponly=True, secure=True, samesite='Lax')
+
+        return response
 
     except Exception as e:
         return jsonify({'message': str(e)}), 500
@@ -159,47 +173,42 @@ def google_user_data():
     try:
         current_app.logger.info("Fetching Google user data...")
 
-        # Extract the Google access token from the Authorization header
-        auth_header = request.headers.get('Authorization')
-        if not auth_header:
-            current_app.logger.warning("Authorization header is missing")
-            return jsonify({'message': 'Authorization header is missing'}), 401
+        # Extract the Google access token from HttpOnly cookie
+        google_access_token = request.cookies.get('access_token')
+        if not google_access_token:
+            current_app.logger.warning("Access token cookie is missing")
+            return jsonify({'message': 'Access token is missing'}), 401
 
-        # Extract the token part from the header
-        google_access_token = auth_header.split(" ")[1]
-        current_app.logger.info(f"Received Google access token: {google_access_token}")
+        current_app.logger.info("Received Google access token from cookie")
 
-        # Verify the token
-        request_client = google_auth_requests.Request()
-        try:
-            current_app.logger.info("Verifying Google token...")
-            # This will throw an error if the token is invalid or expired
-            idinfo = id_token.verify_oauth2_token(google_access_token, request_client, CLIENT_ID)
+        # Use the access token to fetch user data from Google's UserInfo API
+        headers = {'Authorization': 'Bearer ' + google_access_token}
+        response = requests.get(USER_INFO, headers=headers)
 
-            # ID Token is valid, get the Google user ID from it
-            google_user_id = idinfo['sub']
-            current_app.logger.info(f"Verified Google token. User ID: {google_user_id}")
+        if response.status_code != 200:
+            # If the request fails, the access token is invalid or expired
+            current_app.logger.error("Invalid or expired Google access token")
+            return jsonify({'message': 'Invalid or expired Google access token'}), 401
 
-            # Fetch the user data from the database using the Google user ID
-            user_data = db.google_accounts.find_one({"google_id": google_user_id})
-            if not user_data:
-                current_app.logger.warning(f"User not found for Google ID: {google_user_id}")
-                return jsonify({'message': 'User not found'}), 404
+        google_user_info = response.json()
+        google_user_id = google_user_info['id']
 
-            # Prepare the user data to send back to the client
-            response_data = {
-                'google_id': user_data["google_id"],
-                'account_name': user_data["account_name"],
-                'account_id': user_data["account_id"]
-            }
+        current_app.logger.info(f"Successfully fetched Google user data for ID: {google_user_id}")
 
-            current_app.logger.info("Successfully fetched Google user data.")
-            return jsonify(response_data), 200
+        # Fetch the user data from the database using the Google user ID
+        user_data = db.google_accounts.find_one({"google_id": google_user_id})
+        if not user_data:
+            current_app.logger.warning(f"User not found for Google ID: {google_user_id}")
+            return jsonify({'message': 'User not found'}), 404
 
-        except ValueError as e:
-            # Invalid token
-            current_app.logger.error(f"Invalid Google token. Error: {e}")
-            return jsonify({'message': 'Invalid Google token'}), 403
+        # Prepare the user data to send back to the client
+        response_data = {
+            'google_id': user_data["google_id"],
+            'account_name': user_data["account_name"],
+            'account_id': user_data["account_id"]
+        }
+
+        return jsonify(response_data), 200
 
     except Exception as e:
         current_app.logger.error(f"Error in google_user_data endpoint: {e}")

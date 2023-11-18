@@ -38,7 +38,7 @@ if not app.config['JWT_SECRET_KEY']:
 if not app.config['JWT_ACCESS_TOKEN_EXPIRES']:
     raise ValueError("No JWT access token expiration time set")
 
-CORS(app, resources={r"/*": {"origins": "*", "expose_headers": ["Authorization"]}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": "https://localhost:8080"}}, supports_credentials=True)
 client = MongoClient("mongodb+srv://wombat:Glc4GncM@womcluster.vdiu8vi.mongodb.net/")
 db = client.get_database('mathQuizDatabase')
 
