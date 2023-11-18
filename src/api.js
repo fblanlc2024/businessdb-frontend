@@ -41,19 +41,8 @@ function refreshToken() {
     console.log("tested token for cookie retrieval", testName);
   }
 
-  // If we still don't have the CSRF token, we can't proceed with the refresh
-  if (!csrf_refresh) {
-    console.error("[Interceptor] Refresh CSRF token is missing.");
-    EventBus.emit('token-refresh-failed');
-    return Promise.reject('Refresh CSRF token missing');
-  }
-
-  // Check if the CSRF token is for Google's refresh token
-  if (csrf_refresh === Cookies.get('csrf_refresh_token')) {
-    // Use the Google token refresh method
-    return refreshGoogleAccessToken();
-  } else {
-    // Handle non-Google token refresh here
+  // If CSRF token is found, use it to refresh the token
+  if (csrf_refresh) {
     return instance.post('/token_refresh', {}, {
       headers: {
         'X-CSRF-TOKEN': csrf_refresh
@@ -68,6 +57,19 @@ function refreshToken() {
       console.error("[Interceptor] Error refreshing token:", err);
       EventBus.emit('token-refresh-failed');
       throw err;  // Propagate the error
+    });
+  } else {
+    // If CSRF token is not found, proceed with Google token refresh
+    console.log("[Interceptor] CSRF token not found, refreshing Google token...");
+    return refreshGoogleAccessToken()
+    .then(response => {
+      console.log("[Interceptor] Google token refreshed successfully:", response.data);
+      return response.data;
+    })
+    .catch(error => {
+      console.error('Error refreshing Google token:', error);
+      EventBus.emit('token-refresh-failed');
+      return Promise.reject(error);
     });
   }
 }
