@@ -213,3 +213,4 @@ def google_user_data():
     except Exception as e:
         current_app.logger.error(f"Error in google_user_data endpoint: {e}")
         return jsonify({'message': 'Internal server error'}), 500
+
