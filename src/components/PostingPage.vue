@@ -32,7 +32,7 @@ setup() {
     const csrf_access = store.state.accounts.access_csrf;
 
     if (!csrf_access) {
-        console.error('Access CSRF token is missing.');
+        // console.error('Access CSRF token is missing.');
         fetchUserFromGoogleSession();
         return;
     }

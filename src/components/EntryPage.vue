@@ -5,7 +5,7 @@
     </div>
 
     <div class="opacity-0 animate-fadeIn animation-delay-1000">
-      <p class="text-lg font-mono mb-4">Your math journey awaits.</p>
+      <p class="text-lg font-mono mb-4">Please log in to view your school's business clients.</p>
     </div>
     
     <button
@@ -40,10 +40,10 @@
 </template>
 
 <script>
+import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import SignupComponent from './SignupComponent.vue';
-import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
 
 export default {
   components: {
