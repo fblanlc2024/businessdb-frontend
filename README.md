@@ -27,7 +27,7 @@ On MacOS:
 source venv/bin/activate
 ```
 
-Installing Requirements
+### Installing Requirements
 
 Install all neccessary dependencies by running:
 ```bash
