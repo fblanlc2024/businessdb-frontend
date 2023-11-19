@@ -9,9 +9,6 @@ This is our frontend code for our FBLA submission. Installation instructions are
 To get started, first install all the required dependencies:
 ```bash
 npm install
-
-```
-npm install
 ```
 
 ### Compiles and hot-reloads for development
