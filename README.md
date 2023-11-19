@@ -1,7 +1,7 @@
-# Project Name
+# FBLA Project Submission
 
 ## Description
-This project is a Flask-based backend for [describe the main functionality of your application, like a web service, API, etc.]. It's designed to work with a VueJS frontend and provides various endpoints for [describe the main features, such as user authentication, data processing, etc.].
+This is the backend for our FBLA project submission. Installation instructions are down below.
 
 ## Installation
 
@@ -25,5 +25,5 @@ On MacOS:
 ###Installing Requirements
 
 Install all neccessary dependencies by running:
-```bash
+
 pip install -r requirements.txt
