@@ -1,4 +1,4 @@
-# FBLA Project Submission
+# FBLA Backend Project Submission
 
 ## Description
 This is the backend for our FBLA project submission. Installation instructions are down below.
