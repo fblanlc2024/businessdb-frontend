@@ -179,8 +179,7 @@ def token_login():
             refresh_tokens_collection.insert_one({
                 "token": refresh_token,
                 "userId": username,
-                "expiresAt": datetime.utcnow() + timedelta(days=30),
-                "usage_count": 0
+                "expiresAt": datetime.utcnow() + timedelta(days=30)
             })
 
         access_csrf = get_csrf_token(access_token)
@@ -230,42 +229,64 @@ def refresh_token():
 
         current_user = get_jwt_identity()
 
-        received_refresh_token = request.cookies.get('refresh_token_cookie')
-        token_data = refresh_tokens_collection.find_one({"token": received_refresh_token})
-        
+        # Extract the old refresh token from the cookie
+        old_refresh_token = request.cookies.get('refresh_token_cookie')
+        token_data = refresh_tokens_collection.find_one({"token": old_refresh_token})
+
+        if token_data:
+            current_app.logger.info(f"Refresh token data: {token_data}")
+        else:
+            current_app.logger.error("Invalid or expired refresh token used.")
+
+            return jsonify({'message': 'Invalid refresh token'}), 401
+        if not old_refresh_token:
+            return jsonify({'message': 'Refresh token missing'}), 401
+
+        # Validate the old refresh token
+        token_data = refresh_tokens_collection.find_one({"token": old_refresh_token})
         if not token_data:
             return jsonify({'message': 'Invalid refresh token'}), 401
-        
-        # Check if the token has been used too many times
-        if token_data.get('usage_count', 0) >= 25:
-            refresh_tokens_collection.delete_one({"token": received_refresh_token})
-            return jsonify({'message': 'Refresh token has been used too many times. Please re-authenticate.'}), 401
 
-        # Generate a new access token
+        # Generate new tokens
         new_access_token = create_access_token(identity=current_user)
+        new_refresh_token = create_refresh_token(identity=current_user)
 
-        # Update the existing refresh token's expiration and usage count
-        refresh_tokens_collection.update_one(
-            {'token': received_refresh_token},
-            {
-                '$set': {
-                    'expiresAt': datetime.utcnow() + timedelta(days=30)
-                },
-                '$inc': {'usage_count': 1}  # Increment the usage_count here
-            }
+        # Replace the old refresh token in the database
+        refresh_tokens_collection.find_one_and_replace(
+            {"token": old_refresh_token},
+            {"token": new_refresh_token, "userId": current_user, "expiresAt": datetime.utcnow() + timedelta(days=30)}
         )
 
-        # Create a response
-        response = jsonify({'message': 'Token refreshed successfully'})
+        # Generate new CSRF tokens for the new access and refresh tokens
+        new_access_csrf = get_csrf_token(new_access_token)
+        new_refresh_csrf = get_csrf_token(new_refresh_token)
 
-        # Explicitly setting the access and refresh cookies
+        # Create response with new tokens in cookies and CSRF tokens in the response body
+        response_data = {
+            'message': 'Token refreshed successfully',
+            'csrf_tokens': {
+                'access_csrf': new_access_csrf,
+                'refresh_csrf': new_refresh_csrf
+            }
+        }
+
+        current_app.logger.info(f"[Token Refresh] - Response Data: {response_data}")
+
+        response = make_response(jsonify(response_data))
+
         access_expiration_time = timedelta(hours=1)
         refresh_expiration_time = timedelta(days=30)
-        response.set_cookie('access_token_cookie', value=new_access_token, httponly=True, max_age=access_expiration_time, samesite='None', secure=True)
-        response.set_cookie('refresh_token_cookie', value=received_refresh_token, httponly=True, max_age=refresh_expiration_time, samesite='None', secure=True)
-        
+
+        response.set_cookie('access_token_cookie', value=new_access_token, httponly=True, max_age=access_expiration_time.total_seconds(), samesite='None', secure=True)
+        response.set_cookie('refresh_token_cookie', value=new_refresh_token, httponly=True, max_age=refresh_expiration_time.total_seconds(), samesite='None', secure=True)
+
         return response
 
     except JWTExtendedException as e:
-        current_app.logger.error(f"JWT Error in /token_refresh: {e}")
+        # Check if the exception is due to token expiration
+        if 'Token has expired' in str(e):
+            current_app.logger.error("User token has expired.")
+        else:
+            current_app.logger.error(f"JWT Error in /token_refresh: {e}")
+
         return jsonify({'message': str(e)}), 401
