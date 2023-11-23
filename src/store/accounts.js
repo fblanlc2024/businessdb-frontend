@@ -56,7 +56,11 @@ export default {
       commit('setRefreshCSRF', null);
       commit('setAuthentication', false);
       commit('setGoogleLogin', false);
-    }    
+    },
+    updateCsrfTokens({ commit }, payload) {
+      commit('setAccessCSRF', payload.access_csrf);
+      commit('setRefreshCSRF', payload.refresh_csrf);
+    },    
   },
   getters: {
     getUserId: state => state.userId,

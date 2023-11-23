@@ -14,7 +14,7 @@ import { useStore } from 'vuex';
 import api from '../api.js';
 
 export default {
-name: 'PageTwo',
+name: 'PostingPage',
 setup() {
   const store = useStore();
   const router = useRouter();
@@ -45,7 +45,6 @@ setup() {
     })
     .then(response => {
         const { data } = response;
-        // Only update the user's ID and username, not the CSRF tokens
         store.dispatch('accounts/setUserCredentials', {
             id: data.id,
             username: data.logged_in_as,

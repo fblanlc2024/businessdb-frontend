@@ -51,6 +51,10 @@ function refreshToken() {
     })
     .then(response => {
       console.log("[Interceptor] Token refreshed successfully:", response.data);
+      store.dispatch('accounts/updateCsrfTokens', {
+        access_csrf: response.data.csrf_tokens.access_csrf,
+        refresh_csrf: response.data.csrf_tokens.refresh_csrf,
+      });
       return response.data;
     })
     .catch(err => {

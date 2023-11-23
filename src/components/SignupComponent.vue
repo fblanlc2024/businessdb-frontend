@@ -165,23 +165,25 @@ import { useStore } from 'vuex';
 export default {
   name: 'SignupComponent',
   setup() {
-    var showSignup = ref(false);
-    var router = useRouter();
-    var store = useStore();
+    const showSignup = ref(false);
+    const router = useRouter();
+    const store = useStore();
 
-    var loginUsername = ref('');
-    var loginPassword = ref('');
+    const loginUsername = ref('');
+    const loginPassword = ref('');
 
-    var signupUsername = ref('');
-    var signupPassword = ref('');
-    var confirmPassword = ref('');
+    const signupUsername = ref('');
+    const signupPassword = ref('');
+    const confirmPassword = ref('');
 
-    var showForgotPassword = ref(false);
+    const showForgotPassword = ref(false);
 
-    var loginErrMsg = ref('');
-    var signupErrMsg = ref('');
-    var forgotPasswordErrMsg = ref('');
-    var confirmedNewPassword = ref('');
+    const loginErrMsg = ref('');
+    const signupErrMsg = ref('');
+    const forgotPasswordErrMsg = ref('');
+    const confirmedNewPassword = ref('');
+    const remainingAttempts = ref(5);
+    const remainingMinutes = ref(15);
 
     const googleOAuthEndpoint = 'https://localhost:5000/login';
 
@@ -202,7 +204,6 @@ export default {
               console.log("Recieved Access CSRF", access_csrf);
               console.log("Recieved Refresh CSRF", refresh_csrf);
 
-              // Use Vuex to store user credentials and CSRF tokens
               store.dispatch('accounts/setUserCredentials', {
                   id: userId,
                   username: username,
@@ -213,14 +214,28 @@ export default {
 
               console.log("Updated Vuex Store State:", store.state.accounts);
               redirectToPageTwo();
-              loginErrMsg.value = '';  // Clear any previous error message
+              loginErrMsg.value = '';
+              remainingAttempts.value = 5;
           } else {
               loginErrMsg.value = 'Login failed. Please try again.';
           }
       })
       .catch(err => {
-          loginErrMsg.value = 'Incorrect username or password.';
-          console.error('Login error:', err);
+        if (err.response) {
+          // Check for rate limit exceeded error
+          if (err.response.status === 429 && err.response.data.wait_minutes !== undefined) {
+            loginErrMsg.value = `Too many login attempts. Please wait for ${err.response.data.wait_minutes} minutes until your next login attempt.`;
+          } else {
+            // Handle other errors including incorrect login details
+            if (err.response.data.remaining_attempts !== undefined) {
+              remainingAttempts.value = err.response.data.remaining_attempts;
+            }
+            loginErrMsg.value = 'Incorrect username or password. ' + `Attempts left: ${remainingAttempts.value}`;
+          }
+        } else {
+          loginErrMsg.value = 'Network error. Please check your internet connection.';
+        }
+        console.error('Login error:', err);
       });
     };
 
@@ -283,7 +298,7 @@ export default {
     };
 
 
-    var redirectToPageTwo = () => {
+    const redirectToPageTwo = () => {
         router.push({
           name: 'PostingPage'
         });
@@ -316,7 +331,9 @@ export default {
       loginErrMsg,
       signupErrMsg,
       forgotPasswordErrMsg,
-      confirmedNewPassword
+      confirmedNewPassword,
+      remainingAttempts,
+      remainingMinutes
     };
   }
 };
