@@ -5,11 +5,12 @@ from pymongo.errors import WriteError
 import bcrypt
 from flask_jwt_extended import (jwt_required, create_access_token, 
                                 create_refresh_token, get_jwt_identity, 
-                                get_jwt, verify_jwt_in_request, set_access_cookies, set_refresh_cookies, get_csrf_token, decode_token)
+                                get_jwt, verify_jwt_in_request, get_csrf_token)
 from flask_jwt_extended.exceptions import JWTExtendedException
 import logging
 import datetime
 import jwt
+from flask_limiter import RateLimitExceeded
 
 from datetime import datetime
 from datetime import timedelta
@@ -18,19 +19,19 @@ from datetime import timezone
 from flask import Flask
 from flask import jsonify
 
-from flask_jwt_extended import create_access_token
-from flask_jwt_extended import get_jwt
-from flask_jwt_extended import get_jwt_identity
-from flask_jwt_extended import set_access_cookies
-from flask_jwt_extended import unset_jwt_cookies
-
 from app import client, db
 from app.models import Account
+from app import redis_client
 
 account_routes_bp = Blueprint('account_routes', __name__)
 
 accounts_collection = db.accounts
 refresh_tokens_collection = db.refresh_tokens
+ip_attempts_collection = db.ip_attempts
+username_attempts_collection = db.username_attempts
+
+MAX_LOGIN_ATTEMPTS = 5  # Maximum allowed attempts
+LOGIN_ATTEMPT_WINDOW = 3600  # 1 hour window for rate limiting
 
 logging.basicConfig(level=logging.INFO)
 
@@ -50,27 +51,6 @@ def create_account():
     accounts_collection.insert_one(new_account.to_dict())
 
     return jsonify({'message': 'Account created successfully'}), 201
-
-# Read (old login)
-@account_routes_bp.route('/account', methods=['GET'])
-def basic_login():
-    username = request.args.get('username')
-    password = request.args.get('password')
-
-    account = accounts_collection.find_one({'username': username})
-    if not account:
-        return jsonify({'message': 'Username not found'}), 404
-
-    if bcrypt.checkpw(password.encode('utf-8'), account['password_hash']):
-        return jsonify({
-            'message': 'Login successful',
-            'user': {
-                '_id': str(account['_id']),
-                'username': account['username']
-            }
-        }), 200
-    else:
-        return jsonify({'message': 'Incorrect password'}), 401
 
 # Update
 @account_routes_bp.route('/account', methods=['PUT'])
@@ -162,11 +142,36 @@ def token_login():
     data = request.json
     username = data.get('username')
     password = data.get('password')
+    client_ip = request.remote_addr
+    key = f"login_attempts:{client_ip}:{username}"
 
     account = accounts_collection.find_one({'username': username})
-    if not account:
-        return jsonify({'message': 'Username not found'}), 404
+    if not account or not bcrypt.checkpw(password.encode('utf-8'), account['password_hash']):
+        # Increment the failed attempt count
+        attempts = redis_client.incr(key)
+        redis_client.expire(key, LOGIN_ATTEMPT_WINDOW)  # Set the expiration time
+        timestamp_key = f"login_timestamp:{client_ip}"
+        current_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        redis_client.set(timestamp_key, current_time, ex=900) 
 
+        if attempts >= MAX_LOGIN_ATTEMPTS:
+            expiry_key = f"login_expiry:{client_ip}"
+            if not redis_client.exists(expiry_key):
+                expiry_time = datetime.utcnow() + timedelta(minutes=15)
+                redis_client.set(expiry_key, expiry_time.strftime('%Y-%m-%d %H:%M:%S'))
+
+            remaining_minutes = calculate_remaining_minutes(client_ip)
+            return jsonify({
+                'error': 'Too many login attempts. Please wait.',
+                'wait_minutes': remaining_minutes
+            }), 429
+
+        remaining_attempts = calculate_remaining_attempts(client_ip, username)
+        return jsonify({
+            'message': 'Incorrect username or password',
+            'remaining_attempts': remaining_attempts
+        }), 401
+    
     if bcrypt.checkpw(password.encode('utf-8'), account['password_hash']):
         access_token = create_access_token(identity=username)
         
@@ -290,3 +295,67 @@ def refresh_token():
             current_app.logger.error(f"JWT Error in /token_refresh: {e}")
 
         return jsonify({'message': str(e)}), 401
+    
+def is_rate_limit_exceeded(ip, username):
+    current_time = datetime.utcnow()
+    
+    # Check IP-based rate limit
+    ip_record = ip_attempts_collection.find_one({'ip': ip})
+    if ip_record and ip_record['last_attempt_time'] + timedelta(days=1) > current_time and ip_record['attempt_count'] >= 50:
+        return True
+
+    # Check username-based rate limit
+    username_record = username_attempts_collection.find_one({'username': username})
+    if username_record and username_record['last_attempt_time'] + timedelta(hours=1) > current_time and username_record['attempt_count'] >= 5:
+        return True
+
+    return False
+
+def update_rate_limit_records(ip, username):
+    current_time = datetime.utcnow()
+
+    # Update IP-based rate limit record
+    ip_attempts_collection.update_one(
+        {'ip': ip},
+        {'$inc': {'attempt_count': 1}, '$set': {'last_attempt_time': current_time}},
+        upsert=True
+    )
+
+    # Update username-based rate limit record
+    username_attempts_collection.update_one(
+        {'username': username},
+        {'$inc': {'attempt_count': 1}, '$set': {'last_attempt_time': current_time}},
+        upsert=True
+    )
+
+def calculate_remaining_attempts(ip, username):
+    key = f"login_attempts:{ip}:{username}"
+    attempts = redis_client.get(key)
+
+    if not attempts:
+        return MAX_LOGIN_ATTEMPTS
+    
+    attempts_left = MAX_LOGIN_ATTEMPTS - int(attempts)
+    return max(attempts_left, 0)
+
+def calculate_remaining_minutes(ip_address):
+    try:
+        expiry_key = f"login_expiry:{ip_address}"
+        expiry_timestamp = redis_client.get(expiry_key)
+
+        if expiry_timestamp:
+            expiry_time = datetime.strptime(expiry_timestamp.decode(), '%Y-%m-%d %H:%M:%S')
+            current_time = datetime.utcnow()
+
+            if current_time > expiry_time:
+                redis_client.delete(expiry_key)  # Purge the expired timestamp
+                return 0
+
+            remaining_time = expiry_time - current_time
+            remaining_minutes = max(0, int(remaining_time.total_seconds() / 60))
+            return remaining_minutes
+        else:
+            return 0  # No expiry time set, no rate limit in effect
+    except Exception as e:
+        logging.error(f"Error in calculate_remaining_minutes: {e}")
+        return 0

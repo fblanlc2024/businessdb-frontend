@@ -108,13 +108,13 @@ def callback():
     seconds_until_expiry = expiry_timestamp - current_timestamp
 
     access_token_expiration = datetime.utcnow() + timedelta(seconds=seconds_until_expiry)
-    response.set_cookie('access_token', credentials.token, expires=access_token_expiration, httponly=True, secure=True, samesite='Lax')
-    response.set_cookie('id_token', credentials.id_token, expires=access_token_expiration, httponly=True, secure=True, samesite='Lax')
+    response.set_cookie('access_token', credentials.token, expires=access_token_expiration, httponly=True, secure=True, samesite='None')
+    response.set_cookie('id_token', credentials.id_token, expires=access_token_expiration, httponly=True, secure=True, samesite='None')
 
     # Set refresh token in HttpOnly cookie
     # Note: Refresh tokens typically don't expire, but you can set a long duration
     refresh_token_expiration = add_months(datetime.utcnow(), 6)
-    response.set_cookie('refresh_token', credentials.refresh_token, expires=refresh_token_expiration, httponly=True, secure=True, samesite='Lax')
+    response.set_cookie('refresh_token', credentials.refresh_token, expires=refresh_token_expiration, httponly=True, secure=True, samesite='None')
     response.set_cookie('logged_in', 'true', httponly=False, max_age=5, secure=True, samesite='None')
 
     return response
@@ -144,7 +144,7 @@ def google_token_refresh():
         except RefreshError:
             # Refresh token is invalid, clear the refresh token cookie
             response = make_response(jsonify({'message': 'Refresh token is invalid, please reauthenticate'}), 401)
-            response.set_cookie('refresh_token', '', expires=0, httponly=True, secure=True, samesite='Lax')
+            response.set_cookie('refresh_token', '', expires=0, httponly=True, secure=True, samesite='None')
             return response
 
         # Refresh token is valid, update access token
@@ -163,7 +163,7 @@ def google_token_refresh():
         access_token_expiration = datetime.utcnow() + timedelta(seconds=seconds_until_expiry)
 
         # Set the new access token in an HttpOnly cookie
-        response.set_cookie('access_token', credentials.token, expires=access_token_expiration, httponly=True, secure=True, samesite='Lax')
+        response.set_cookie('access_token', credentials.token, expires=access_token_expiration, httponly=True, secure=True, samesite='None')
 
         return response
 
