@@ -222,18 +222,24 @@ export default {
       })
       .catch(err => {
         if (err.response) {
-          // Check for rate limit exceeded error
-          if (err.response.status === 429 && err.response.data.wait_minutes !== undefined) {
-            loginErrMsg.value = `Too many login attempts. Please wait for ${err.response.data.wait_minutes} minutes until your next login attempt.`;
+          if (err.response.status === 429) {
+            if (err.response.data.wait_minutes !== undefined) {
+              // Rate limit exceeded for login attempts
+              loginErrMsg.value = `Too many login attempts. Please wait for ${err.response.data.wait_minutes} minutes until your next login attempt.`;
+            } else {
+              // Rate limit exceeded for IP
+              loginErrMsg.value = 'You have exceeded the maximum number of requests. Please wait a few minutes before trying again.';
+            }
           } else {
             // Handle other errors including incorrect login details
             if (err.response.data.remaining_attempts !== undefined) {
               remainingAttempts.value = err.response.data.remaining_attempts;
-            }
-            loginErrMsg.value = 'Incorrect username or password. ' + `Attempts left: ${remainingAttempts.value}`;
+              loginErrMsg.value = 'Incorrect username or password. ' + `Attempts left: ${remainingAttempts.value}`;
+            } 
           }
         } else {
-          loginErrMsg.value = 'Network error. Please check your internet connection.';
+          loginErrMsg.value = 'You are locked out for a temporary period of time. Please try again later.';
+          alert('You have exceeded the login attempts that you can put on this application. Please wait and try again later.');
         }
         console.error('Login error:', err);
       });
