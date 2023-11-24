@@ -21,7 +21,7 @@ from flask import jsonify
 
 from app import client, db
 from app.models import Account
-from app import redis_client
+from app import redis_client, limiter
 
 account_routes_bp = Blueprint('account_routes', __name__)
 
@@ -31,7 +31,7 @@ ip_attempts_collection = db.ip_attempts
 username_attempts_collection = db.username_attempts
 
 MAX_LOGIN_ATTEMPTS = 5  # Maximum allowed attempts
-LOGIN_ATTEMPT_WINDOW = 3600  # 1 hour window for rate limiting
+LOGIN_ATTEMPT_WINDOW = 900  # 1 hour window for rate limiting
 
 logging.basicConfig(level=logging.INFO)
 
@@ -138,39 +138,34 @@ def protected():
         return jsonify({'message': 'Token verification failed'}), 401
     
 @account_routes_bp.route('/token_login_set', methods=['POST'])
+@limiter.limit("75 per 3 minutes")
 def token_login():
+    client_ip = request.remote_addr
     data = request.json
     username = data.get('username')
     password = data.get('password')
-    client_ip = request.remote_addr
+
+    logging.info(f"Login attempt for username: {username} from IP: {client_ip}")
+
     key = f"login_attempts:{client_ip}:{username}"
+    expiry_key = f"username_expiry:{username}"
 
     account = accounts_collection.find_one({'username': username})
     if not account or not bcrypt.checkpw(password.encode('utf-8'), account['password_hash']):
-        # Increment the failed attempt count
         attempts = redis_client.incr(key)
-        redis_client.expire(key, LOGIN_ATTEMPT_WINDOW)  # Set the expiration time
-        timestamp_key = f"login_timestamp:{client_ip}"
-        current_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-        redis_client.set(timestamp_key, current_time, ex=900) 
+        redis_client.expire(key, LOGIN_ATTEMPT_WINDOW)
 
         if attempts >= MAX_LOGIN_ATTEMPTS:
-            expiry_key = f"login_expiry:{client_ip}"
+            # Check if the expiry timestamp is already set for this username
             if not redis_client.exists(expiry_key):
-                expiry_time = datetime.utcnow() + timedelta(minutes=15)
-                redis_client.set(expiry_key, expiry_time.strftime('%Y-%m-%d %H:%M:%S'))
+                expiry_timestamp = datetime.utcnow() + timedelta(minutes=15)
+                redis_client.set(expiry_key, expiry_timestamp.strftime('%Y-%m-%d %H:%M:%S'), ex=900)
 
-            remaining_minutes = calculate_remaining_minutes(client_ip)
-            return jsonify({
-                'error': 'Too many login attempts. Please wait.',
-                'wait_minutes': remaining_minutes
-            }), 429
+            remaining_minutes = calculate_remaining_minutes(username)
+            return jsonify({'error': 'Too many login attempts. Please wait.', 'wait_minutes': remaining_minutes}), 429
 
         remaining_attempts = calculate_remaining_attempts(client_ip, username)
-        return jsonify({
-            'message': 'Incorrect username or password',
-            'remaining_attempts': remaining_attempts
-        }), 401
+        return jsonify({'message': 'Incorrect username or password', 'remaining_attempts': remaining_attempts}), 401
     
     if bcrypt.checkpw(password.encode('utf-8'), account['password_hash']):
         access_token = create_access_token(identity=username)
@@ -180,12 +175,12 @@ def token_login():
             refresh_token = existing_refresh_token['token']
         else:
             refresh_token = create_refresh_token(identity=username)
-            # Store the new refresh token in the database
             refresh_tokens_collection.insert_one({
                 "token": refresh_token,
                 "userId": username,
                 "expiresAt": datetime.utcnow() + timedelta(days=30)
             })
+            logging.info(f"Created new refresh token for username: {username}")
 
         access_csrf = get_csrf_token(access_token)
         refresh_csrf = get_csrf_token(refresh_token)
@@ -206,8 +201,9 @@ def token_login():
         response.set_cookie('access_token_cookie', value=access_token, httponly=True, max_age=access_expiration_time, samesite='None', secure=True)
         response.set_cookie('refresh_token_cookie', value=refresh_token, httponly=True, max_age=refresh_expiration_time, samesite='None', secure=True)
         
+        logging.info(f"User {username} logged in successfully.")
         return response
-
+    
 # Rolling Refresh Token System
 @account_routes_bp.route('/token_refresh', methods=['POST'])
 def refresh_token():
@@ -338,14 +334,17 @@ def calculate_remaining_attempts(ip, username):
     attempts_left = MAX_LOGIN_ATTEMPTS - int(attempts)
     return max(attempts_left, 0)
 
-def calculate_remaining_minutes(ip_address):
+def calculate_remaining_minutes(username):
     try:
-        expiry_key = f"login_expiry:{ip_address}"
+        expiry_key = f"username_expiry:{username}"
         expiry_timestamp = redis_client.get(expiry_key)
+
+        current_time = datetime.utcnow()
+        logging.info(f"Current time for username {username}: {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
 
         if expiry_timestamp:
             expiry_time = datetime.strptime(expiry_timestamp.decode(), '%Y-%m-%d %H:%M:%S')
-            current_time = datetime.utcnow()
+            logging.info(f"Expiry time for username {username}: {expiry_time.strftime('%Y-%m-%d %H:%M:%S')}")
 
             if current_time > expiry_time:
                 redis_client.delete(expiry_key)  # Purge the expired timestamp
@@ -355,7 +354,21 @@ def calculate_remaining_minutes(ip_address):
             remaining_minutes = max(0, int(remaining_time.total_seconds() / 60))
             return remaining_minutes
         else:
+            logging.info(f"No expiry time set for username {username}, no rate limit in effect.")
             return 0  # No expiry time set, no rate limit in effect
     except Exception as e:
-        logging.error(f"Error in calculate_remaining_minutes: {e}")
+        logging.error(f"Error in calculate_remaining_minutes for username {username}: {e}")
         return 0
+    
+@account_routes_bp.errorhandler(RateLimitExceeded)
+def handle_rate_limit_error(e):
+    client_ip = request.remote_addr
+    ip_rate_limit_key = f"ip_rate_limit:{client_ip}"
+
+    # Check if a lockout key already exists for this IP
+    if not redis_client.exists(ip_rate_limit_key):
+        # Set a 1-hour lockout for IP if it doesn't already exist
+        redis_client.set(ip_rate_limit_key, 1, ex=3600)
+        logging.info(f"Set a 1-hour rate limit lockout for IP: {client_ip}")
+
+    return jsonify({'error': 'Rate limit exceeded. Please try again in 1 hour.'}), 429

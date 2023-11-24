@@ -14,6 +14,7 @@ from google.oauth2 import id_token
 from google.auth.exceptions import RefreshError
 import json
 import calendar
+from app import redis_client
 
 # OAuth2 client setup
 CLIENT_ID = '898438500076-f6on6105fpi2e913mi7kudtva2ti0qve.apps.googleusercontent.com'
@@ -29,7 +30,14 @@ login_routes_bp = Blueprint('login_routes_bp', __name__)
 refresh_tokens_collection = db.refresh_tokens
 
 @login_routes_bp.route("/login")
+@login_routes_bp.route("/login")
 def login():
+    client_ip = request.remote_addr
+    ip_rate_limit_key = f"ip_rate_limit:{client_ip}"
+
+    # Check rate limit
+    if redis_client.exists(ip_rate_limit_key):
+        return jsonify({'error': 'IP rate limit exceeded. Please try again later.'})
     flow = Flow.from_client_config(
         {
             "web": {

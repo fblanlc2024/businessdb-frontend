@@ -45,9 +45,15 @@ rate_limiting = db.get_collection('rate_limiting')
 
 redis_client = Redis(host='localhost', port=6379, db=0)
 
+def exclude_options():
+    # Exclude OPTIONS requests from rate limiting
+    if request.method == 'OPTIONS':
+        return 'exclude'
+    return get_remote_address()
+
 limiter = Limiter(
     app=app,
-    key_func=get_remote_address,
+    key_func=exclude_options,
     storage_uri="redis://localhost:6379",
     default_limits_exempt_when=lambda: False
 )
@@ -57,66 +63,3 @@ from app.routes import main_route, account_routes, login_routes
 app.register_blueprint(main_route.bp)
 app.register_blueprint(account_routes.account_routes_bp)
 app.register_blueprint(login_routes.login_routes_bp)
-
-from flask import request, jsonify
-from datetime import datetime
-
-@app.before_request
-def check_rate_limit():
-    try:
-        limit_per_hour = 100
-        limit_per_day = 1000
-        current_ip = request.remote_addr
-        current_time = datetime.utcnow()
-
-        # Find or initialize the rate limit document
-        rate_limit_record = rate_limiting.find_one({'ip_address': current_ip})
-
-        if rate_limit_record:
-            # Check if within the same hour
-            if rate_limit_record['window_start_hour'].hour == current_time.hour and rate_limit_record['window_start_hour'].day == current_time.day:
-                new_count_hourly = rate_limit_record['request_count_hourly'] + 1
-            else:
-                # Reset count for a new hour
-                rate_limit_record['window_start_hour'] = current_time.replace(minute=0, second=0, microsecond=0)
-                new_count_hourly = 1
-
-            # Check if within the same day
-            if rate_limit_record['window_start_day'].day == current_time.day:
-                new_count_daily = rate_limit_record['request_count_daily'] + 1
-            else:
-                # Reset count for a new day
-                rate_limit_record['window_start_day'] = current_time.replace(hour=0, minute=0, second=0, microsecond=0)
-                new_count_daily = 1
-
-            # Update the record
-            rate_limiting.update_one(
-                {'ip_address': current_ip},
-                {'$set': {
-                    'request_count_hourly': new_count_hourly, 
-                    'window_start_hour': rate_limit_record['window_start_hour'],
-                    'request_count_daily': new_count_daily, 
-                    'window_start_day': rate_limit_record['window_start_day']
-                }}
-            )
-        else:
-            # Create a new record for a new IP
-            new_record = {
-                'ip_address': current_ip,
-                'request_count_hourly': 1,
-                'window_start_hour': current_time.replace(minute=0, second=0, microsecond=0),
-                'request_count_daily': 1,
-                'window_start_day': current_time.replace(hour=0, minute=0, second=0, microsecond=0)
-            }
-            rate_limiting.insert_one(new_record)
-            new_count_hourly, new_count_daily = 1, 1
-
-        # Check if either limit is exceeded
-        if new_count_hourly > limit_per_hour or new_count_daily > limit_per_day:
-            return jsonify({'error': 'Rate limit exceeded'}), 429
-    except Exception as e:
-        print(f"Error checking rate limit: {e}")
-    
-@app.errorhandler(RateLimitExceeded)
-def ratelimit_handler(e):
-    return jsonify(error="You have been rate limited. Please limit your requests to this application."), 429
