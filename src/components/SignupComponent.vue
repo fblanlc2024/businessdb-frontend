@@ -228,7 +228,8 @@ export default {
               loginErrMsg.value = `Too many login attempts. Please wait for ${err.response.data.wait_minutes} minutes until your next login attempt.`;
             } else {
               // Rate limit exceeded for IP
-              loginErrMsg.value = 'You have exceeded the maximum number of requests. Please wait a few minutes before trying again.';
+              loginErrMsg.value = 'You have been temporarily locked out of this application. Please wait before trying to log in again.';
+              alert('You have exceeded the login attempts that you can put on this application. Please wait and try again later.');
             }
           } else {
             // Handle other errors including incorrect login details
@@ -238,8 +239,7 @@ export default {
             } 
           }
         } else {
-          loginErrMsg.value = 'You are locked out for a temporary period of time. Please try again later.';
-          alert('You have exceeded the login attempts that you can put on this application. Please wait and try again later.');
+          loginErrMsg.value = 'It seems there is an error with our servers. Please try again later.';
         }
         console.error('Login error:', err);
       });
@@ -271,9 +271,18 @@ export default {
     };
 
     const redirectToGoogleAuth = () => {
-      store.commit('accounts/setGoogleLogin', true);
-      window.location.href = googleOAuthEndpoint;
+      fetch(googleOAuthEndpoint)
+          .then(response => {
+              if (response.status === 429) {
+                  alert("You have exceeded the login attempts. Please wait and try again later.");
+              } else {
+                  store.commit('accounts/setGoogleLogin', true);
+                  window.location.href = googleOAuthEndpoint;
+              }
+          })
+          .catch(error => console.error('Error:', error));
     };
+
 
     const handleForgotPassword = () => {
       // Check if passwords match
