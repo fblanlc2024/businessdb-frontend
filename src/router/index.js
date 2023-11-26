@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
 import { createRouter, createWebHistory } from 'vue-router';
+import BusinessInfo from '../components/BusinessInfo.vue';
 import EntryPage from '../components/EntryPage.vue';
 import ManageAccount from '../components/ManageAccount.vue';
 import PostingPage from '../components/PostingPage.vue';
@@ -9,7 +10,8 @@ import { store } from '../main';
 const routes = [
   { path: '/', name: 'EntryPage', component: EntryPage },
   { path: '/posting', name: 'PostingPage', component: PostingPage, meta: { requiresAuth: true } },
-  { path: '/manageAccount', name: 'ManageAccount', component: ManageAccount, meta: { requiresAuth: true } }
+  { path: '/manageAccount', name: 'ManageAccount', component: ManageAccount, meta: { requiresAuth: true } },
+  { path: '/businessinfo', name: 'BusinessInfo', component: BusinessInfo, meta: { requiresAuth: true } }
 ];
 
 const router = createRouter({
