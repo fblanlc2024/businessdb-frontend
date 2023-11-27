@@ -3,6 +3,7 @@
     <div class="opacity-0 animate-fadeIn animation-delay-500">
       <h1 class="text-7xl font-mono mb-4">Welcome</h1>
     </div>
+    
 
     <div class="opacity-0 animate-fadeIn animation-delay-1000">
       <p class="text-lg font-mono mb-4">Please log in to view your school's business clients.</p>

@@ -1,24 +1,11 @@
 <template>
     <div class="dark:bg-gray-800 dark:text-gray-400 min-h-screen">
         <!-- Header and Title -->
-        <div class="flex justify-between items-center mb-4 py-5 pb-5 border-b-2 border-gray-400 text-center dark:border-gray-700">
+        <div class="non-printing flex justify-between items-center mb-4 py-5 pb-5 border-b-2 border-gray-400 text-center dark:border-gray-700">
         <div class="flex-1"></div>
-        <h1 class="text-4xl font-bold flex-shrink">Policy Walker</h1>
-        <div class="flex-1 flex justify-end">
-            <Switch
-            v-model="isDarkMode"
-            :class="isDarkMode ? 'bg-blue-900' : 'bg-blue-700'"
-            class="relative inline-flex h-[38px] w-[74px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 mr-8"
-            >
-            <span class="sr-only">Toggle Dark Mode</span>
-            <span
-                aria-hidden="true"
-                :class="isDarkMode ? 'translate-x-9' : 'translate-x-0'"
-                class="pointer-events-none inline-block h-[34px] w-[34px] transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out"
-            />
-            </Switch>
-        </div>
-        </div>
+        <h1 class="non-printing text-4xl font-bold flex-shrink">Business Info</h1>
+        <DarkModeSwitch></DarkModeSwitch>
+    </div>
 
         <div class="text-2xl font-bold mb-4 pt-6 text-center">
             <h2>Information for {{ businessName }}</h2>
@@ -26,38 +13,69 @@
 
         <!-- Data Display using divs -->
         <div class="max-w-4xl mx-auto overflow-hidden bg-white shadow-lg rounded-lg dark:bg-gray-800 mt-8 mb-8">
-        <div class="divide-y divide-gray-200 dark:divide-gray-700">
-            <div v-for="displayName in keys" :key="displayName" class="grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-gray-800">
-                <div class="px-6 py-4 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                    {{ displayName }}
-                </div>
-                    <div class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+            <div class="data-display-for-print divide-y divide-gray-200 dark:divide-gray-700">
+                <div v-for="displayName in keys" :key="displayName" class="grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-gray-800">
+                    <div class="px-6 py-4 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        {{ displayName }}
+                    </div>
+                    <div :class="{'cursor-pointer hover:underline': mapping[displayName] === 'address'}" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" @click="mapping[displayName] === 'address' ? openModal(businessData.address) : null">
                         <!-- Conditional Rendering for Specific Fields -->
                         <template v-if="mapping[displayName] === 'resources_available'">
-                        {{ formattedResourcesAvailable }}
+                            {{ formattedResourcesAvailable }}
                         </template>
                         <template v-else-if="mapping[displayName] === 'has_available_resources'">
-                        {{ formattedAvailability }}
+                            {{ formattedAvailability }}
                         </template>
                         <template v-else>
-                        {{ businessData[mapping[displayName]] }}
+                            {{ businessData[mapping[displayName]] }}
                         </template>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="non-printing text-center mb-4">
+            <button @click="printReport" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                Print Report
+            </button>
+        </div>
     </div>
+
+    <TransitionRoot as="template" :show="isDialogOpen">
+        <Dialog as="div" class="fixed inset-0 z-10 overflow-y-auto" @close="closeModal">
+            <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
+                <DialogOverlay class="fixed inset-0 transition-opacity bg-black bg-opacity-50" />
+            </TransitionChild>
+
+            <!-- This element is to trick the browser into centering the modal contents. -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+                <DialogPanel class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                    <iframe :src="mapEmbedUrl" width="100%" height="500" frameborder="0" allowfullscreen></iframe>
+                </DialogPanel>
+            </TransitionChild>
+            </div>
+        </Dialog>
+    </TransitionRoot>
 </template>  
 
 <script>
-import { Switch } from '@headlessui/vue';
+import { Dialog, DialogOverlay, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import axios from 'axios';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import DarkModeSwitch from './DarkModeSwitch.vue';
 
 export default {
   components: {
-    Switch
+    Dialog,
+    DialogPanel,
+    DialogOverlay,
+    TransitionRoot,
+    TransitionChild,
+    DarkModeSwitch
   },
   setup() {
     const isDarkMode = ref(false);
@@ -65,6 +83,8 @@ export default {
     const businessName = ref('');
     const keys = ref(["Address", "Business ID", "Contact Info", "Resources Available", "Organization Type", "Types of Resources"]);
     const route = useRoute();
+    const isDialogOpen = ref(false);
+    const mapEmbedUrl = ref('');
 
     const mapping = {
       "Address": "address",
@@ -75,19 +95,25 @@ export default {
       "Types of Resources": "resources_available"
     };
 
-    watch(isDarkMode, (newValue) => {
-      if (newValue) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      window.localStorage.setItem('isDarkMode', newValue.toString());
-    });
+    const openModal = (address) => {
+        if (address) {
+            const formattedAddress = encodeURIComponent(address);
+            mapEmbedUrl.value = `https://maps.google.com/maps?q=${formattedAddress}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
+        }
+        isDialogOpen.value = true;
+    };
+
+    const closeModal = () => {
+        isDialogOpen.value = false;
+    }
+       
+    const printReport = () => {
+        setTimeout(() => {
+            window.print();
+        }, 100);
+    }
 
     onMounted(() => {
-        const savedDarkMode = window.localStorage.getItem('isDarkMode');
-        isDarkMode.value = savedDarkMode === 'true';
-
         // Retrieve the business name from the route query
         businessName.value = route.query.businessName;
 
@@ -116,6 +142,7 @@ export default {
         }
         return '';  // Return an empty string if data is not available
     });
+
     return {
         isDarkMode,
         businessData,
@@ -123,8 +150,52 @@ export default {
         keys,
         mapping,
         formattedAvailability,
-        formattedResourcesAvailable
+        formattedResourcesAvailable,
+        isDialogOpen,
+        mapEmbedUrl,
+        openModal,
+        closeModal,
+        printReport
     };
   }
 };
 </script>
+
+<style>
+@media print {
+  /* Hide elements not needed in print */
+  .hide-on-print, header, footer, nav, .non-printing {
+    display: none;
+  }
+
+  /* Style adjustments for printing */
+  .data-display-for-print {
+    display: block; /* Switch to block layout for print */
+  }
+
+  .data-display-for-print > div {
+    display: flex;
+    justify-content: space-between; /* Align key-value pairs */
+    border-bottom: 1px solid #e2e8f0; /* Border for each row */
+  }
+
+  /* Remove the border-bottom style from the key divs */
+  .data-display-for-print > div > div:first-child {
+    border-bottom: none; /* This removes the extra border under the keys */
+  }
+
+  /* Remove bottom border from the last row */
+  .data-display-for-print > div:last-child {
+    border-bottom: none;
+  }
+
+  /* Ensure each row doesn't break across pages */
+  .data-display-for-print > div {
+    page-break-inside: avoid;
+  }
+
+  .print-only {
+    display: block;
+  }
+}
+</style>
