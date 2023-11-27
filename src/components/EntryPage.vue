@@ -1,4 +1,5 @@
 <template>
+  <DarkModeSwitch></DarkModeSwitch>
   <div class="flex flex-col justify-center items-center h-screen space-y-4">
     <div class="opacity-0 animate-fadeIn animation-delay-500">
       <h1 class="text-7xl font-mono mb-4">Welcome</h1>
@@ -44,6 +45,7 @@
 import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import DarkModeSwitch from './DarkModeSwitch.vue';
 import SignupComponent from './SignupComponent.vue';
 
 export default {
@@ -52,7 +54,8 @@ export default {
     TransitionRoot,
     TransitionChild,
     Dialog,
-    DialogPanel
+    DialogPanel,
+    DarkModeSwitch
   },
   setup() {
     const router = useRouter();
