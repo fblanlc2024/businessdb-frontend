@@ -271,16 +271,8 @@ export default {
     };
 
     const redirectToGoogleAuth = () => {
-      fetch(googleOAuthEndpoint)
-          .then(response => {
-              if (response.status === 429) {
-                  alert("You have exceeded the login attempts. Please wait and try again later.");
-              } else {
-                  store.commit('accounts/setGoogleLogin', true);
-                  window.location.href = googleOAuthEndpoint;
-              }
-          })
-          .catch(error => console.error('Error:', error));
+      store.commit('accounts/setGoogleLogin', true);
+      window.location.href = googleOAuthEndpoint;
     };
 
 
