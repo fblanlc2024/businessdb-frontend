@@ -4,7 +4,7 @@
       <div class="flex-1"></div>
       <h1 class="text-4xl font-bold flex-shrink" @click="redirectToManagement">Welcome, {{ username }}!</h1>
       <div class="flex-1 flex justify-end">
-        <DarkModeSwitch></DarkModeSwitch>
+        <DarkModeSwitch ckass="non-printing"></DarkModeSwitch>
       </div>
     </div>
 

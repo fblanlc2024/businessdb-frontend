@@ -1,3 +1,40 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+
+@media print {
+    /* Hide elements not needed in print */
+    .hide-on-print, header, footer, nav, .non-printing {
+      display: none;
+    }
+  
+    /* Style adjustments for printing */
+    .data-display-for-print {
+      display: block; /* Switch to block layout for print */
+    }
+  
+    .data-display-for-print > div {
+      display: flex;
+      justify-content: space-between; /* Align key-value pairs */
+      border-bottom: 1px solid #e2e8f0; /* Border for each row */
+    }
+  
+    /* Remove the border-bottom style from the key divs */
+    .data-display-for-print > div > div:first-child {
+      border-bottom: none; /* This removes the extra border under the keys */
+    }
+  
+    /* Remove bottom border from the last row */
+    .data-display-for-print > div:last-child {
+      border-bottom: none;
+    }
+  
+    /* Ensure each row doesn't break across pages */
+    .data-display-for-print > div {
+      page-break-inside: avoid;
+    }
+  
+    .print-only {
+      display: block;
+    }
+  }

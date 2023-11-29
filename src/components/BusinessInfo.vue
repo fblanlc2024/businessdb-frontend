@@ -4,7 +4,7 @@
         <div class="non-printing flex justify-between items-center mb-4 py-5 pb-5 border-b-2 border-gray-400 text-center dark:border-gray-700">
         <div class="flex-1"></div>
         <h1 class="non-printing text-4xl font-bold flex-shrink">Business Info</h1>
-        <DarkModeSwitch></DarkModeSwitch>
+        <DarkModeSwitch class="non-printing"></DarkModeSwitch>
     </div>
 
         <div class="text-2xl font-bold mb-4 pt-6 text-center">
@@ -44,18 +44,29 @@
     <TransitionRoot as="template" :show="isDialogOpen">
         <Dialog as="div" class="fixed inset-0 z-10 overflow-y-auto" @close="closeModal">
             <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
-                <DialogOverlay class="fixed inset-0 transition-opacity bg-black bg-opacity-50" />
-            </TransitionChild>
+                <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
+                    <DialogOverlay class="fixed inset-0 transition-opacity bg-black bg-opacity-50" />
+                </TransitionChild>
 
-            <!-- This element is to trick the browser into centering the modal contents. -->
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <!-- This element is to trick the browser into centering the modal contents. -->
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
-                <DialogPanel class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                    <iframe :src="mapEmbedUrl" width="100%" height="500" frameborder="0" allowfullscreen></iframe>
+                <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+                <DialogPanel 
+                    :class="[
+                        'inline-block align-bottom bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:align-middle',
+                        isExpanded ? 'fixed inset-0 z-50 w-full h-full max-w-none p-0' : 'sm:my-8 sm:max-w-lg sm:w-full sm:p-6'
+                    ]"
+                >
+                    <div class="absolute top-0 right-0 p-4 cursor-pointer hover-effect" @click="toggleModalSize">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                        </svg>
+                    </div>
+                    <iframe :src="mapEmbedUrl" width="100%" :height="isExpanded ? '100%' : '500'" frameborder="0" allowfullscreen></iframe>
                 </DialogPanel>
-            </TransitionChild>
+
+                </TransitionChild>
             </div>
         </Dialog>
     </TransitionRoot>
@@ -85,6 +96,7 @@ export default {
     const route = useRoute();
     const isDialogOpen = ref(false);
     const mapEmbedUrl = ref('');
+    const isExpanded = ref(false);
 
     const mapping = {
       "Address": "address",
@@ -111,6 +123,10 @@ export default {
         setTimeout(() => {
             window.print();
         }, 100);
+    }
+
+    const toggleModalSize = () => {
+        isExpanded.value = !isExpanded.value;
     }
 
     onMounted(() => {
@@ -153,49 +169,19 @@ export default {
         formattedResourcesAvailable,
         isDialogOpen,
         mapEmbedUrl,
+        isExpanded,
         openModal,
         closeModal,
-        printReport
+        printReport,
+        toggleModalSize
     };
   }
 };
 </script>
 
 <style>
-@media print {
-  /* Hide elements not needed in print */
-  .hide-on-print, header, footer, nav, .non-printing {
-    display: none;
-  }
-
-  /* Style adjustments for printing */
-  .data-display-for-print {
-    display: block; /* Switch to block layout for print */
-  }
-
-  .data-display-for-print > div {
-    display: flex;
-    justify-content: space-between; /* Align key-value pairs */
-    border-bottom: 1px solid #e2e8f0; /* Border for each row */
-  }
-
-  /* Remove the border-bottom style from the key divs */
-  .data-display-for-print > div > div:first-child {
-    border-bottom: none; /* This removes the extra border under the keys */
-  }
-
-  /* Remove bottom border from the last row */
-  .data-display-for-print > div:last-child {
-    border-bottom: none;
-  }
-
-  /* Ensure each row doesn't break across pages */
-  .data-display-for-print > div {
-    page-break-inside: avoid;
-  }
-
-  .print-only {
-    display: block;
-  }
+.hover-effect:hover {
+    transform: scale(1.1); /* Enlarge the logo on hover */
+    transition: transform 0.3s ease-in-out; /* Smooth transition */
 }
 </style>
