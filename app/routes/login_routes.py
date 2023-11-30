@@ -30,7 +30,6 @@ login_routes_bp = Blueprint('login_routes_bp', __name__)
 refresh_tokens_collection = db.refresh_tokens
 
 @login_routes_bp.route("/login")
-@login_routes_bp.route("/login")
 def login():
     client_ip = request.remote_addr
     ip_rate_limit_key = f"ip_rate_limit:{client_ip}"
