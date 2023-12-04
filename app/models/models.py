@@ -3,13 +3,10 @@ from pymongo import MongoClient
 import datetime
 
 class Account:
-    def __init__(self, username, password_hash):
+    def __init__(self, username, password_hash, isAdmin=False):
         self.username = username
         self.password_hash = password_hash
-        self.statistics = {
-            "login_count": 0,
-            "last_login": datetime.datetime.utcnow()
-        }
+        self.isAdmin = isAdmin
         self.created_at = datetime.datetime.utcnow()
         self.updated_at = datetime.datetime.utcnow()
 
@@ -17,16 +14,17 @@ class Account:
         return {
             "username": self.username,
             "password_hash": self.password_hash,
-            "statistics": self.statistics,
+            "isAdmin": self.isAdmin,
             "created_at": self.created_at,
             "updated_at": self.updated_at
         }
 
 class GoogleAccount:
-    def __init__(self, google_id, account_name, account_id):
+    def __init__(self, google_id, account_name, account_id, isAdmin=False):
         self.google_id = google_id  # New field for Google ID
         self.account_name = account_name
         self.account_id = account_id
+        self.isAdmin = isAdmin
         self.statistics = {
             "login_count": 0,
             "last_login": datetime.datetime.utcnow()

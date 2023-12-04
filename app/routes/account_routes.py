@@ -47,7 +47,7 @@ def create_account():
         return jsonify({'message': 'Username already exists'}), 400
 
     hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(15))
-    new_account = Account(username, hashed_pw)
+    new_account = Account(username, hashed_pw, isAdmin=False)
     accounts_collection.insert_one(new_account.to_dict())
 
     return jsonify({'message': 'Account created successfully'}), 201
@@ -182,6 +182,7 @@ def token_login():
             })
             logging.info(f"Created new refresh token for username: {username}")
 
+        is_admin = account.get('isAdmin', False)
         access_csrf = get_csrf_token(access_token)
         refresh_csrf = get_csrf_token(refresh_token)
 
@@ -229,6 +230,9 @@ def refresh_token():
             return jsonify({'message': 'Invalid CSRF token'}), 403
 
         current_user = get_jwt_identity()
+
+        account = accounts_collection.find_one({'username': current_user})
+        is_admin = account.get('isAdmin', False)
 
         # Extract the old refresh token from the cookie
         old_refresh_token = request.cookies.get('refresh_token_cookie')
@@ -292,37 +296,31 @@ def refresh_token():
 
         return jsonify({'message': str(e)}), 401
     
+@account_routes_bp.route('/admin_status_check', methods=['GET'])
+@jwt_required()
+def admin_status_check():
+    current_user = get_jwt_identity()
+
+    user_document = accounts_collection.find_one({"username": current_user})
+
+    if user_document:
+        is_admin = user_document.get("isAdmin", False)
+        return jsonify({"isAdmin": is_admin}), 200
+    else:
+        return jsonify({"error": "User not found"}), 404
+    
 def is_rate_limit_exceeded(ip, username):
     current_time = datetime.utcnow()
     
-    # Check IP-based rate limit
     ip_record = ip_attempts_collection.find_one({'ip': ip})
     if ip_record and ip_record['last_attempt_time'] + timedelta(days=1) > current_time and ip_record['attempt_count'] >= 50:
         return True
 
-    # Check username-based rate limit
     username_record = username_attempts_collection.find_one({'username': username})
     if username_record and username_record['last_attempt_time'] + timedelta(hours=1) > current_time and username_record['attempt_count'] >= 5:
         return True
 
     return False
-
-def update_rate_limit_records(ip, username):
-    current_time = datetime.utcnow()
-
-    # Update IP-based rate limit record
-    ip_attempts_collection.update_one(
-        {'ip': ip},
-        {'$inc': {'attempt_count': 1}, '$set': {'last_attempt_time': current_time}},
-        upsert=True
-    )
-
-    # Update username-based rate limit record
-    username_attempts_collection.update_one(
-        {'username': username},
-        {'$inc': {'attempt_count': 1}, '$set': {'last_attempt_time': current_time}},
-        upsert=True
-    )
 
 def calculate_remaining_attempts(ip, username):
     key = f"login_attempts:{ip}:{username}"
@@ -367,7 +365,6 @@ def handle_rate_limit_error(e):
 
     # Check if a lockout key already exists for this IP
     if not redis_client.exists(ip_rate_limit_key):
-        # Set a 1-hour lockout for IP if it doesn't already exist
         redis_client.set(ip_rate_limit_key, 1, ex=3600)
         logging.info(f"Set a 1-hour rate limit lockout for IP: {client_ip}")
 
