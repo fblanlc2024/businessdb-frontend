@@ -25,10 +25,6 @@ class GoogleAccount:
         self.account_name = account_name
         self.account_id = account_id
         self.isAdmin = isAdmin
-        self.statistics = {
-            "login_count": 0,
-            "last_login": datetime.datetime.utcnow()
-        }
         self.created_at = datetime.datetime.utcnow()
         self.updated_at = datetime.datetime.utcnow()
 
@@ -41,10 +37,10 @@ class GoogleAccount:
             "created_at": self.created_at,
             "updated_at": self.updated_at
         }
-    
+
 class Business:
-    def __init__(self, business_id, business_name, address, organization_type, resources_available, has_available_resources, contact_info):
-        self.business_id = business_id
+    def __init__(self, business_name, address, organization_type, resources_available, has_available_resources, contact_info):
+        self.business_id = None
         self.business_name = business_name
         self.address = address
         self.organization_type = organization_type

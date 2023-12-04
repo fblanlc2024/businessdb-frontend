@@ -22,6 +22,7 @@ from flask import jsonify
 from app import client, db
 from app.models import Business
 businesses_collection = db.businesses
+counters_collection = db.counters
 data_routes_bp = Blueprint('data_routes', __name__)
 
 @data_routes_bp.route('/api/businesses', methods=['GET'])
@@ -44,3 +45,37 @@ def get_business_info():
         return jsonify(business_info)
     else:
         return jsonify({"error": "Business not found"}), 404
+
+
+@data_routes_bp.route('/add_business', methods=['POST'])
+def add_business():
+    data = request.json
+
+    try:
+        new_business = Business(
+            business_id=data.get('business_id'),
+            business_name=data.get('business_name'),
+            address=data['address'],
+            organization_type=data.get('organization_type'),
+            resources_available=data.get('resources_available'),
+            has_available_resources=data.get('has_available_resources'),
+            contact_info=data.get('contact_info')
+        )
+
+        new_business.business_id = get_next_business_id()
+        businesses_collection.insert_one(new_business.to_dict())
+
+        return jsonify({'message': 'New business added successfully'}), 201
+
+    except KeyError as e:
+        return jsonify({'error': f'Missing address component: {e}'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+def get_next_business_id():
+    result = counters_collection.find_one_and_update(
+        {'_id': 'business_id'},
+        {'$inc': {'seq': 1}},
+        return_document=True
+    )
+    return result['seq']
