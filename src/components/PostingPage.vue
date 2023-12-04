@@ -2,7 +2,7 @@
   <div>
     <div class="flex justify-between items-center mb-4 py-5 pb-5 border-b-2 border-gray-400 text-center dark:border-gray-700">
       <div class="flex-1"></div>
-      <h1 class="text-4xl font-bold flex-shrink" @click="redirectToManagement">Welcome, {{ username }}!</h1>
+      <h1 class="text-4xl font-bold flex-shrink" @click="redirectToManagement">Welcome, {{ username }}, {{isAdmin}}!</h1>
       <div class="flex-1 flex justify-end">
         <DarkModeSwitch ckass="non-printing"></DarkModeSwitch>
       </div>
@@ -13,8 +13,15 @@
       <div class="pl-2 mb-4 whitespace-pre-line">On this page, enter your client name in the search box below. Then, click your client name to view all of the policies that are available under your company name.</div>
       <input v-model="textInput" type="text" placeholder="Enter client name:" class="w-1/2 ml-2 px-2 py-2 border border-gray-300 dark:bg-gray-800 dark:border-gray-500 rounded-md shadow-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
     </div>
-    
+
     <div class="grid grid-cols-4 gap-2 mt-4 px-8 pb-5">
+        <button v-if="isAdmin" @click="addClient" class="cell-button px-2 py-1 border rounded-md hover:bg-gray-200 dark:border-gray-500 dark:hover:bg-gray-500 cursor-pointer">
+            <div class="circle-icon border-black dark:border-gray-200">
+                <span class="plus-icon dark:text-gray-200">+</span>
+            </div>
+        </button>
+
+      <!-- Other Cells Generated from sortedAndFilteredBusinesses -->
       <div v-for="business in sortedAndFilteredBusinesses" :key="business" @click="redirectToBusinessInfo(business)" class="px-2 py-1 border rounded-md hover:bg-gray-200 dark:hover:bg-gray-500 dark:hover:text-gray-200 cursor-pointer">
         {{ business }}
       </div>
@@ -26,6 +33,7 @@
 </template>
 
 <script>
+import { checkAdminStatus } from '@/adminCheck';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { computed, onMounted, ref } from 'vue';
@@ -46,6 +54,7 @@ export default {
         const username = computed(() => store.getters['accounts/getUsername']);
         const textInput = ref('');
         const businesses = ref([]);
+        const isAdmin = ref(false);
         const prefersDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         const savedDarkMode = window.localStorage.getItem('isDarkMode');
         const initialDarkMode = savedDarkMode !== null ? savedDarkMode === 'true' : prefersDarkMode;
@@ -58,7 +67,6 @@ export default {
         const fetchCurrentUser = () => {
             const csrf_access = store.state.accounts.access_csrf;
             if (!csrf_access) {
-                // console.error('Access CSRF token is missing.');
                 fetchUserFromGoogleSession();
                 return;
             }
@@ -112,15 +120,21 @@ export default {
             });
         };
 
-        onMounted(() => {
-            fetchCurrentUser();
-            axios.get('https://localhost:5000/api/businesses')
-                .then(response => {
-                businesses.value = response.data;
-            })
-                .catch(error => console.error(error));
-        });
+        const addClient = () => {
+            console.log("button clicked");
+        }
 
+        onMounted(async () => {
+            try {
+                fetchCurrentUser();
+                isAdmin.value = await checkAdminStatus();
+                console.log("Admin deez nuts", isAdmin.value);
+                const response = await axios.get('https://localhost:5000/api/businesses');
+                businesses.value = response.data;
+            } catch (error) {
+                console.error(error);
+            }
+        });
         const sortedAndFilteredBusinesses = computed(() => {
             let sortedBusinesses = [...businesses.value].sort();
             if (!textInput.value)
@@ -150,10 +164,35 @@ export default {
             businesses,
             isDarkMode,
             sortedAndFilteredBusinesses,
-            redirectToBusinessInfo
+            redirectToBusinessInfo,
+            checkAdminStatus,
+            isAdmin,
+            addClient
         };
     }
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.cell-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.circle-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  border: 2px dashed #000; /* Standard border color */
+  border-radius: 50%;
+  background-color: transparent;
+}
+
+.plus-icon {
+  font-size: 24px;
+  color: #000;
+}
+</style>
