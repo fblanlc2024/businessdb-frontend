@@ -4,7 +4,7 @@
       <div class="flex-1"></div>
       <h1 class="text-4xl font-bold flex-shrink" @click="redirectToManagement">Welcome, {{ username }}, {{isAdmin}}!</h1>
       <div class="flex-1 flex justify-end">
-        <DarkModeSwitch ckass="non-printing"></DarkModeSwitch>
+        <DarkModeSwitch class="non-printing"></DarkModeSwitch>
       </div>
     </div>
 
@@ -15,17 +15,41 @@
     </div>
 
     <div class="grid grid-cols-4 gap-2 mt-4 px-8 pb-5">
-        <button v-if="isAdmin" @click="addClient" class="cell-button px-2 py-1 border rounded-md hover:bg-gray-200 dark:border-gray-500 dark:hover:bg-gray-500 cursor-pointer">
+        <button v-if="isAdmin" @click="openModal" class="cell-button px-2 py-1 border rounded-md hover:bg-gray-200 dark:border-gray-500 dark:hover:bg-gray-500 cursor-pointer">
             <div class="circle-icon border-black dark:border-gray-200">
                 <span class="plus-icon dark:text-gray-200">+</span>
             </div>
         </button>
 
-      <!-- Other Cells Generated from sortedAndFilteredBusinesses -->
-      <div v-for="business in sortedAndFilteredBusinesses" :key="business" @click="redirectToBusinessInfo(business)" class="px-2 py-1 border rounded-md hover:bg-gray-200 dark:hover:bg-gray-500 dark:hover:text-gray-200 cursor-pointer">
-        {{ business }}
-      </div>
+        <!-- Business Items -->
+        <div v-for="business in sortedAndFilteredBusinesses" 
+            :key="business.business_id" 
+            @click="redirectToBusinessInfo(business)" 
+            class="px-2 py-1 border rounded-md hover:bg-gray-200 dark:hover:bg-gray-500 dark:hover:text-gray-200 cursor-pointer">
+          {{ business?.business_name }}
+        </div>
     </div>
+
+
+    <TransitionRoot :show="isOpen" as="template">
+      <Dialog as="div" @close="closeModal" class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 text-center">
+          <TransitionChild
+            as="template"
+            enter="duration-300 ease-out"
+            enter-from="opacity-0 scale-95"
+            enter-to="opacity-100 scale-100"
+            leave="duration-200 ease-in"
+            leave-from="opacity-100 scale-100"
+            leave-to="opacity-0 scale-95"
+          >
+            <DialogPanel class="w-full md:w-[800px] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all z-40">
+              <BusinessForm></BusinessForm>
+            </DialogPanel>
+          </TransitionChild>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
   <div>
     <button @click="logOut">Log out</button>
@@ -34,18 +58,26 @@
 
 <script>
 import { checkAdminStatus } from '@/adminCheck';
+import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import api from '../api.js';
+import EventBus from '../eventBus';
+import BusinessForm from './BusinessForm.vue';
 import DarkModeSwitch from './DarkModeSwitch.vue';
 
 export default {
     name: 'PostingPage',
     components: {
-      DarkModeSwitch
+        DarkModeSwitch,
+        TransitionRoot,
+        TransitionChild,
+        Dialog,
+        DialogPanel,
+        BusinessForm
     },
     setup() {
         const store = useStore();
@@ -59,11 +91,15 @@ export default {
         const savedDarkMode = window.localStorage.getItem('isDarkMode');
         const initialDarkMode = savedDarkMode !== null ? savedDarkMode === 'true' : prefersDarkMode;
         const isDarkMode = ref(initialDarkMode);
+        const isOpen = ref(false);
+        const highlightBusinessId = ref(null);
+
         const redirectToManagement = () => {
             router.push({
                 name: 'ManageAccount'
             });
         };
+
         const fetchCurrentUser = () => {
             const csrf_access = store.state.accounts.access_csrf;
             if (!csrf_access) {
@@ -88,6 +124,7 @@ export default {
                 console.error('Error fetching current user:', error);
             });
         };
+
         const fetchUserFromGoogleSession = () => {
             console.log("Fetching Google session user...");
             api.get('/google_user_data', {
@@ -126,6 +163,8 @@ export default {
 
         onMounted(async () => {
             try {
+                EventBus.on('business-added', handleBusinessAdded);
+                EventBus.on('close-modal', closeModal);
                 fetchCurrentUser();
                 isAdmin.value = await checkAdminStatus();
                 console.log("Admin deez nuts", isAdmin.value);
@@ -135,21 +174,48 @@ export default {
                 console.error(error);
             }
         });
+
+        onUnmounted(() => {
+          EventBus.off('close-modal', closeModal);
+          EventBus.off('business-added', handleBusinessAdded);
+        });
+
         const sortedAndFilteredBusinesses = computed(() => {
-            let sortedBusinesses = [...businesses.value].sort();
-            if (!textInput.value)
-                return sortedBusinesses;
-            let val = textInput.value.toUpperCase();
-            return sortedBusinesses.filter(business => business.toUpperCase().includes(val));
+          if (!businesses.value) return [];
+
+          let filteredBusinesses = businesses.value.filter(b => b != null);
+          let val = textInput.value.toUpperCase();
+          return filteredBusinesses
+            .filter(business => business.business_name.toUpperCase().includes(val))
+            .sort((a, b) => a.business_name.localeCompare(b.business_name));
         });
 
         const redirectToBusinessInfo = (business) => {
             router.push({
                 name: 'BusinessInfo',
                 query: {
-                    businessName: business
+                    businessName: business.business_name
                 }
             });
+        };
+
+        const handleBusinessAdded = (business) => {
+          console.log('New business added:', business);
+          businesses.value.push(business);
+          highlightBusinessId.value = business.business_id;
+
+          // Remove highlight after a delay
+          setTimeout(() => {
+            highlightBusinessId.value = null;
+          }, 3000); // 3 seconds
+        };
+
+        const openModal = () => {
+            isOpen.value = true;
+        };
+
+        const closeModal = () => {
+            isOpen.value = false;
         };
 
         return {
@@ -167,7 +233,13 @@ export default {
             redirectToBusinessInfo,
             checkAdminStatus,
             isAdmin,
-            addClient
+            addClient,
+            isOpen,
+            openModal,
+            closeModal,
+            EventBus,
+            handleBusinessAdded,
+            highlightBusinessId
         };
     }
 };
@@ -194,5 +266,35 @@ export default {
 .plus-icon {
   font-size: 24px;
   color: #000;
+}
+
+/* Modal Background */
+.dialog-background {
+  position: fixed; /* Fix the position */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto; /* Enable scrolling inside the modal */
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+}
+
+/* Modal Content */
+.dialog-content {
+  position: relative;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 10% auto; /* Adjust for positioning */
+  max-width: 500px; /* Adjust based on your requirement */
+}
+
+.highlight-business {
+  animation: pulsate 2s infinite;
+}
+
+@keyframes pulsate {
+  0%, 100% { box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(0, 0, 0, 0.7); }
 }
 </style>
