@@ -119,9 +119,9 @@ def reset_password():
 @jwt_required()
 def protected():
     try:
-        current_app.logger.info(f"Received headers (Protected Route): {request.headers}")
+        # current_app.logger.info(f"Received headers (Protected Route): {request.headers}")
         current_user = get_jwt_identity()
-        current_app.logger.info(f"[Protected Endpoint] - Current User: {current_user}")
+        # current_app.logger.info(f"[Protected Endpoint] - Current User: {current_user}")
         
         account = accounts_collection.find_one({'username': current_user})
         if not account:
@@ -211,7 +211,7 @@ def refresh_token():
     try:
         # Extract CSRF token from headers
         received_csrf_token = request.headers.get('X-CSRF-TOKEN')
-        current_app.logger.info("CSRF TOKEN THAT WAS FOUND: %s", received_csrf_token)
+        # current_app.logger.info("CSRF TOKEN THAT WAS FOUND: %s", received_csrf_token)
         
         if not received_csrf_token:
             current_app.logger.error("CSRF token missing in headers.")
@@ -275,7 +275,7 @@ def refresh_token():
             }
         }
 
-        current_app.logger.info(f"[Token Refresh] - Response Data: {response_data}")
+        # current_app.logger.info(f"[Token Refresh] - Response Data: {response_data}")
 
         response = make_response(jsonify(response_data))
 

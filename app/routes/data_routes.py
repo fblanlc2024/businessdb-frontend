@@ -27,9 +27,10 @@ data_routes_bp = Blueprint('data_routes', __name__)
 
 @data_routes_bp.route('/api/businesses', methods=['GET'])
 def get_businesses():
-    businesses = businesses_collection.find({}, {'business_name': 1, '_id': 0})
-    business_names = [business['business_name'] for business in businesses]
-    return jsonify(business_names)
+    businesses = businesses_collection.find({}, {'_id': 0, 'business_id': 1, 'business_name': 1})
+    business_list = list(businesses)
+
+    return jsonify(business_list)
 
 @data_routes_bp.route('/api/business_info', methods=['GET'])
 def get_business_info():
@@ -50,27 +51,43 @@ def get_business_info():
 @data_routes_bp.route('/add_business', methods=['POST'])
 def add_business():
     data = request.json
+    required_fields = ['business_name', 'address', 'organization_type', 'resources_available', 'has_available_resources', 'contact_info']
+
+    for field in required_fields:
+        if field not in data:
+            return jsonify({'error': f'Missing required field: {field}'}), 400
 
     try:
         new_business = Business(
-            business_id=data.get('business_id'),
-            business_name=data.get('business_name'),
+            business_name=data['business_name'],
             address=data['address'],
-            organization_type=data.get('organization_type'),
-            resources_available=data.get('resources_available'),
-            has_available_resources=data.get('has_available_resources'),
-            contact_info=data.get('contact_info')
+            organization_type=data['organization_type'],
+            resources_available=data['resources_available'],
+            has_available_resources=data['has_available_resources'],
+            contact_info=data['contact_info']
         )
 
         new_business.business_id = get_next_business_id()
-        businesses_collection.insert_one(new_business.to_dict())
 
-        return jsonify({'message': 'New business added successfully'}), 201
+        # Insert the new business and retrieve the inserted ID if possible
+        insert_result = businesses_collection.insert_one(new_business.to_dict())
+        inserted_id = insert_result.inserted_id
+
+        # Retrieve the inserted business data
+        inserted_business = businesses_collection.find_one({'_id': inserted_id})
+
+        if inserted_business:
+            # Convert the MongoDB document to a JSON-friendly format
+            inserted_business['_id'] = str(inserted_business['_id'])  # Convert ObjectId to string
+
+            return jsonify(inserted_business), 201
+        else:
+            return jsonify({'error': 'Failed to retrieve the added business'}), 500
 
     except KeyError as e:
         return jsonify({'error': f'Missing address component: {e}'}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': str(e)}), 500
 
 def get_next_business_id():
     result = counters_collection.find_one_and_update(
