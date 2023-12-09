@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request, current_app, redirect, url_for, make_response
 import pymongo
+import requests
 from pymongo import MongoClient
 from pymongo.errors import WriteError
 import bcrypt
@@ -23,6 +24,7 @@ from app import client, db
 from app.models import Business
 businesses_collection = db.businesses
 counters_collection = db.counters
+FOURSQUARE_API_KEY = "fsq3ToBA7PvQLrce5qB5hgyRhLjn3L6D9JgVhgeAWKaCY0g="
 data_routes_bp = Blueprint('data_routes', __name__)
 
 @data_routes_bp.route('/api/businesses', methods=['GET'])
@@ -88,6 +90,35 @@ def add_business():
         return jsonify({'error': f'Missing address component: {e}'}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@data_routes_bp.route('/delete_business/<int:business_id>', methods=['DELETE'])
+def delete_business_by_id(business_id):
+    try:
+        result = businesses_collection.delete_one({'business_id': business_id})
+        if result.deleted_count > 0:
+            return jsonify({'message': 'Business deleted successfully'}), 200
+        else:
+            return jsonify({'error': 'Business not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@data_routes_bp.route('/autocomplete', methods=['GET'])
+def autocomplete():
+    query = request.args.get('query')
+    url = "https://api.foursquare.com/v3/places/search"
+
+    headers = {
+        "Accept": "application/json",
+        "Authorization": FOURSQUARE_API_KEY
+    }
+
+    params = {
+        "query": query,
+        "limit": 5  # Adjust limit as needed
+    }
+
+    response = requests.get(url, headers=headers, params=params)
+    return jsonify(response.json())
 
 def get_next_business_id():
     result = counters_collection.find_one_and_update(
