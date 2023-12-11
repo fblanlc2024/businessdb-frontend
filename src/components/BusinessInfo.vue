@@ -19,12 +19,14 @@
                         {{ displayName }}
                     </div>
                     <div :class="{'cursor-pointer hover:underline': mapping[displayName] === 'address'}" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" @click="mapping[displayName] === 'address' ? openModal(businessData.address) : null">
-                        <!-- Conditional Rendering for Specific Fields -->
                         <template v-if="mapping[displayName] === 'resources_available'">
                             {{ formattedResourcesAvailable }}
                         </template>
                         <template v-else-if="mapping[displayName] === 'has_available_resources'">
                             {{ formattedAvailability }}
+                        </template>
+                        <template v-else-if="mapping[displayName] === 'address'">
+                            {{ formattedAddress }}
                         </template>
                         <template v-else>
                             {{ businessData[mapping[displayName]] }}
@@ -35,7 +37,7 @@
         </div>
 
         <div class="non-printing text-center mb-4">
-            <button @click="printReport" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+            <button @click="generatePDF" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
                 Print Report
             </button>
         </div>
@@ -121,6 +123,13 @@ export default {
         isExpanded.value = !isExpanded.value;
     }
 
+    const generatePDF = () => {
+      const businessNameEncoded = encodeURIComponent(this.businessName);
+
+      // Open the PDF in a new tab
+      window.open(`https://localhost:5000/print_business_info?name=${businessNameEncoded}`, '_blank');
+    }
+
     onMounted(() => {
         // Retrieve the business name from the route query
         businessName.value = route.query.businessName;
@@ -129,6 +138,7 @@ export default {
             // Use the businessName in the API call
             axios.get(`https://localhost:5000/api/business_info?name=${encodeURIComponent(businessName.value)}`)
             .then(response => {
+                console.log(response);
                 businessData.value = response.data; // Assuming the response is the object you want to display
             })
             .catch(error => console.error(error));
@@ -142,13 +152,20 @@ export default {
             return businessData.value.resources_available.join(", ");
         }
         return '';  // Return an empty string if data is not available
-        });
+    });
 
-        const formattedAvailability = computed(() => {
+    const formattedAvailability = computed(() => {
         if (businessData.value && typeof businessData.value.has_available_resources === 'boolean') {
             return businessData.value.has_available_resources ? "Yes" : "No";
         }
-        return '';  // Return an empty string if data is not available
+        return '';
+    });
+
+    const formattedAddress = computed(() => {
+        if (businessData.value && Array.isArray(businessData.value.address)) {
+            return businessData.value.address.join(", ");
+        }
+        return '';
     });
 
     return {
@@ -165,7 +182,9 @@ export default {
         openModal,
         closeModal,
         printReport,
-        toggleModalSize
+        toggleModalSize,
+        formattedAddress,
+        generatePDF
     };
   }
 };

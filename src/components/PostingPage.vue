@@ -38,8 +38,9 @@
 
 
     <TransitionRoot :show="isOpen" as="template">
-      <Dialog as="div" @close="closeModal" class="fixed inset-0 overflow-y-auto">
+      <Dialog as="div" class="fixed inset-0 overflow-y-auto">
         <div class="flex min-h-full items-center justify-center p-4 text-center">
+          <div class="fixed inset-0 bg-black bg-opacity-50" aria-hidden="true"></div>
           <TransitionChild
             as="template"
             enter="duration-300 ease-out"
@@ -49,7 +50,10 @@
             leave-from="opacity-100 scale-100"
             leave-to="opacity-0 scale-95"
           >
-            <DialogPanel class="w-full md:w-[800px] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all z-40">
+            <DialogPanel class="w-full md:w-[800px] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all z-50">
+              <button @click="closeModal" class="absolute top-4 left-4 bg-transparent text-black hover:text-gray-700 font-semibold text-xl leading-none transition-transform transform hover:scale-110">
+              <XMarkIcon class="w-6 h-6" />
+              </button>
               <BusinessForm></BusinessForm>
             </DialogPanel>
           </TransitionChild>
@@ -72,7 +76,6 @@
             <div class="fixed inset-0 bg-black opacity-30" aria-hidden="true"></div>
           </TransitionChild>
 
-          <!-- Modal Panel -->
           <TransitionChild
             as="template"
             enter="ease-out duration-300"
@@ -114,7 +117,7 @@
 <script>
 import { checkAdminStatus } from '@/adminCheck';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
-import { TrashIcon } from '@heroicons/vue/24/outline';
+import { TrashIcon, XMarkIcon } from '@heroicons/vue/24/outline';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
@@ -135,7 +138,8 @@ export default {
         DialogPanel,
         DialogTitle,
         BusinessForm,
-        TrashIcon
+        TrashIcon,
+        XMarkIcon
     },
     setup() {
         const store = useStore();

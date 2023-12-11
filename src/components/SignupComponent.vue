@@ -94,7 +94,6 @@
 
       <!-- Forgot Password Form -->
       <div v-if="showForgotPassword" class="sm:mx-auto sm:w-full sm:max-w-sm">
-        <!-- <h2 class="mt-10 text-center text-2xl font-mono-bold leading-9 tracking-tight text-gray-900">Forgot Password</h2> -->
         <form class="space-y-6" @submit.prevent="handleForgotPassword">
             <!-- Username -->
             <div>
