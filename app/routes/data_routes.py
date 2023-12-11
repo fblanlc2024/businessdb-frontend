@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, current_app, redirect, url_for, make_response
+from flask import Blueprint, jsonify, request, current_app, redirect, url_for, make_response, render_template
 import pymongo
 import requests
 from pymongo import MongoClient
@@ -19,6 +19,7 @@ from datetime import timezone
 
 from flask import Flask
 from flask import jsonify
+import re
 
 from app import client, db
 from app.models import Business
@@ -53,11 +54,27 @@ def get_business_info():
 @data_routes_bp.route('/add_business', methods=['POST'])
 def add_business():
     data = request.json
+    print("Received business data:", data)
     required_fields = ['business_name', 'address', 'organization_type', 'resources_available', 'has_available_resources', 'contact_info']
 
     for field in required_fields:
-        if field not in data:
-            return jsonify({'error': f'Missing required field: {field}'}), 400
+        if field not in data or not data[field]:
+            return jsonify({'error': f'Missing or empty required field: {field}'}), 400
+        if field == 'address':
+            for address_field in ['number', 'street', 'city', 'state', 'zipcode', 'country']:
+                if address_field not in data[field] or not data[field][address_field]:
+                    return jsonify({'error': f'Missing or empty address field: {address_field}'}), 400
+
+    # Additional format validations
+    if 'zipcode' in data['address'] and not re.match(r'^\d{5}$', data['address']['zipcode']):
+        return jsonify({'error': 'Invalid zipcode format.'}), 400
+
+    if 'number' in data['address']:
+        try:
+            # Convert to integer and check if it raises an error
+            int(data['address']['number'])
+        except ValueError:
+            return jsonify({'error': 'Address number must be an integer'}), 400
 
     try:
         new_business = Business(
