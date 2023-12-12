@@ -58,8 +58,13 @@ def add_business():
     required_fields = ['business_name', 'address', 'organization_type', 'resources_available', 'has_available_resources', 'contact_info']
 
     for field in required_fields:
-        if field not in data or not data[field]:
+        # Check if the field is not in data or if it's a string that's empty after stripping
+        if field not in data or (isinstance(data[field], str) and not data[field].strip()):
             return jsonify({'error': f'Missing or empty required field: {field}'}), 400
+        # Special case for boolean fields like 'has_available_resources'
+        if field == 'has_available_resources' and not isinstance(data[field], bool):
+            return jsonify({'error': f'Invalid data type for field: {field}'}), 400
+        # Additional checks for 'address' fields
         if field == 'address':
             for address_field in ['number', 'street', 'city', 'state', 'zipcode', 'country']:
                 if address_field not in data[field] or not data[field][address_field]:
