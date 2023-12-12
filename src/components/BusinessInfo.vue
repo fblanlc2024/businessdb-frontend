@@ -31,8 +31,19 @@
                         <template v-else>
                             {{ businessData[mapping[displayName]] }}
                         </template>
+                        
                     </div>
                 </div>
+                <template v-if="isAdmin">
+        <div v-for="adminField in adminFields" :key="adminField" class="grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-gray-800">
+          <div class="px-6 py-4 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+            {{ adminField }}
+          </div>
+          <div class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+            {{ businessData[adminFieldMapping[adminField]] }}
+          </div>
+        </div>
+      </template>
             </div>
         </div>
 
@@ -67,6 +78,7 @@
 </template>  
 
 <script>
+import { checkAdminStatus } from '@/adminCheck';
 import { Dialog, DialogOverlay, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import axios from 'axios';
 import { computed, onMounted, ref } from 'vue';
@@ -91,6 +103,14 @@ export default {
     const isDialogOpen = ref(false);
     const mapEmbedUrl = ref('');
     const isExpanded = ref(false);
+    const isAdmin = ref(false);
+    const adminFields = ref(["Yearly Revenue", "Employee Count", "Customer Satisfaction", "Website Traffic"]);
+    const adminFieldMapping = {
+      "Yearly Revenue": "yearly_revenue",
+      "Employee Count": "employee_count",
+      "Customer Satisfaction": "customer_satisfaction",
+      "Website Traffic": "website_traffic"
+    };
 
     const mapping = {
       "Address": "address",
@@ -101,10 +121,10 @@ export default {
       "Types of Resources": "resources_available"
     };
 
-    const openModal = (address) => {
-        if (address) {
-            const formattedAddress = encodeURIComponent(address);
-            mapEmbedUrl.value = `https://maps.google.com/maps?q=${formattedAddress}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
+    const openModal = () => {
+        if (formattedAddress.value) {
+            const encodedAddress = encodeURIComponent(formattedAddress.value);
+            mapEmbedUrl.value = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
         }
         isDialogOpen.value = true;
     };
@@ -112,34 +132,53 @@ export default {
     const closeModal = () => {
         isDialogOpen.value = false;
     }
-       
-    const printReport = () => {
-        setTimeout(() => {
-            window.print();
-        }, 100);
-    }
 
     const toggleModalSize = () => {
         isExpanded.value = !isExpanded.value;
     }
 
+    // const generatePDF = () => {
+    //     const businessNameEncoded = encodeURIComponent(businessName.value);
+
+    //     axios.get(`https://localhost:5000/print_business_info?name=${businessNameEncoded}`, {
+    //         responseType: 'blob',
+    //     })
+    //     .then(response => {
+    //         // Create a URL for the blob
+    //         const fileURL = window.URL.createObjectURL(new Blob([response.data]));
+    //         const fileLink = document.createElement('a');
+
+    //         fileLink.href = fileURL;
+    //         fileLink.setAttribute('download', `${businessName.value}.pdf`);
+    //         document.body.appendChild(fileLink);
+
+    //         fileLink.click();
+
+    //         document.body.removeChild(fileLink);
+    //         window.URL.revokeObjectURL(fileURL);
+    //     })
+    //     .catch(error => {
+    //         console.error('Error fetching PDF:', error);
+    //     });
+    // };
+
     const generatePDF = () => {
-      const businessNameEncoded = encodeURIComponent(this.businessName);
+        const businessNameEncoded = encodeURIComponent(businessName.value);
 
-      // Open the PDF in a new tab
-      window.open(`https://localhost:5000/print_business_info?name=${businessNameEncoded}`, '_blank');
-    }
+        // Open the PDF in a new window or tab
+        window.open(`https://localhost:5000/print_business_info?name=${businessNameEncoded}`, '_blank');
+    };
 
-    onMounted(() => {
-        // Retrieve the business name from the route query
+
+    onMounted(async () => {
         businessName.value = route.query.businessName;
+        isAdmin.value = await checkAdminStatus();
 
         if (businessName.value) {
-            // Use the businessName in the API call
             axios.get(`https://localhost:5000/api/business_info?name=${encodeURIComponent(businessName.value)}`)
             .then(response => {
                 console.log(response);
-                businessData.value = response.data; // Assuming the response is the object you want to display
+                businessData.value = response.data;
             })
             .catch(error => console.error(error));
         } else {
@@ -148,11 +187,21 @@ export default {
     });
 
     const formattedResourcesAvailable = computed(() => {
-        if (businessData.value && Array.isArray(businessData.value.resources_available)) {
-            return businessData.value.resources_available.join(", ");
+        const resources = businessData.value && businessData.value.resources_available;
+
+        if (Array.isArray(resources)) {
+            return resources.join(", ");
+        } else if (typeof resources === 'string') {
+            return resources.split(',')
+                        .map(s => s.trim())
+                        .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+                        .join(', ');
         }
-        return '';  // Return an empty string if data is not available
+
+        return '';
     });
+
+
 
     const formattedAvailability = computed(() => {
         if (businessData.value && typeof businessData.value.has_available_resources === 'boolean') {
@@ -162,8 +211,11 @@ export default {
     });
 
     const formattedAddress = computed(() => {
-        if (businessData.value && Array.isArray(businessData.value.address)) {
-            return businessData.value.address.join(", ");
+        if (businessData.value && typeof businessData.value.address === 'object') {
+            const addr = businessData.value.address;
+            return [
+                addr.number, addr.city, addr.state, addr.zipcode, addr.country
+            ].filter(Boolean).join(", ");
         }
         return '';
     });
@@ -181,10 +233,12 @@ export default {
         isExpanded,
         openModal,
         closeModal,
-        printReport,
         toggleModalSize,
         formattedAddress,
-        generatePDF
+        generatePDF,
+        isAdmin,
+        adminFieldMapping,
+        adminFields
     };
   }
 };

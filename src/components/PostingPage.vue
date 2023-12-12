@@ -263,7 +263,7 @@ export default {
                 });
                 fetchCurrentUser();
                 isAdmin.value = await checkAdminStatus();
-                console.log("Admin deez nuts", isAdmin.value);
+                console.log("Admin value", isAdmin.value);
                 const response = await axios.get('https://localhost:5000/api/businesses');
                 businesses.value = response.data;
             } catch (error) {

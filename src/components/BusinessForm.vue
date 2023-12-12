@@ -160,7 +160,7 @@ import EventBus from '../eventBus';
           },
           organization_type: organizationType.value,
           resources_available: resourcesAvailable.value,
-          has_available_resources: hasAvailableResourcesBoolean.value,
+          has_available_resources: hasAvailableResourcesBoolean.value === 'true',
           contact_info: contactInfo.value
         };
   
