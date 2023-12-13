@@ -35,15 +35,15 @@
                     </div>
                 </div>
                 <template v-if="isAdmin">
-        <div v-for="adminField in adminFields" :key="adminField" class="grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-gray-800">
-          <div class="px-6 py-4 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-            {{ adminField }}
-          </div>
-          <div class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-            {{ businessData[adminFieldMapping[adminField]] }}
-          </div>
-        </div>
-      </template>
+                    <div v-for="adminField in adminFields" :key="adminField" class="grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-gray-800">
+                    <div class="px-6 py-4 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        {{ adminField }}
+                    </div>
+                    <div class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {{ businessData[adminFieldMapping[adminField]] }}
+                    </div>
+                    </div>
+                </template>
             </div>
         </div>
 
@@ -164,11 +164,10 @@ export default {
 
     const generatePDF = () => {
         const businessNameEncoded = encodeURIComponent(businessName.value);
+        const isAdminStatus = isAdmin.value ? 'true' : 'false';
 
-        // Open the PDF in a new window or tab
-        window.open(`https://localhost:5000/print_business_info?name=${businessNameEncoded}`, '_blank');
-    };
-
+        window.open(`https://localhost:5000/print_business_info?name=${businessNameEncoded}&isAdmin=${isAdminStatus}`, '_blank');
+    };  
 
     onMounted(async () => {
         businessName.value = route.query.businessName;
