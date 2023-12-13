@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 {
   "name": "math-quiz",
   "version": "0.1.0",
@@ -58,6 +57,3 @@
     "not ie 11"
   ]
 }
-=======
-{}
->>>>>>> math-quiz-backend/main
