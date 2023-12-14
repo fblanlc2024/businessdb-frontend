@@ -14,11 +14,11 @@
         <!-- Data Display using divs -->
         <div class="max-w-4xl mx-auto overflow-hidden bg-white shadow-lg rounded-lg dark:bg-gray-800 mt-8 mb-8">
             <div class="data-display-for-print divide-y divide-gray-200 dark:divide-gray-700">
-                <div v-for="displayName in keys" :key="displayName" class="grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-gray-800">
-                    <div class="px-6 py-4 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                <div v-for="(displayName, index) in keys" :key="displayName" :class="{'grid grid-cols-2': !isAdmin, 'grid grid-cols-3': isAdmin}">
+                    <div :class="['px-6 py-4 text-sm font-medium text-gray-900 dark:text-white whitespace-normal', isAdmin || index < keys.length ? 'border-r' : '', 'border-gray-200 dark:border-gray-700']">
                         {{ displayName }}
                     </div>
-                    <div :class="{'cursor-pointer hover:underline': mapping[displayName] === 'address'}" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" @click="mapping[displayName] === 'address' ? openModal(businessData.address) : null">
+                    <div :class="['px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-normal', isAdmin ? 'border-r' : '', mapping[displayName] === 'address' ? 'cursor-pointer hover:underline' : '', 'border-gray-200 dark:border-gray-700']" @click="mapping[displayName] === 'address' ? openModal(businessData.address) : null">
                         <template v-if="mapping[displayName] === 'resources_available'">
                             {{ formattedResourcesAvailable }}
                         </template>
@@ -31,19 +31,13 @@
                         <template v-else>
                             {{ businessData[mapping[displayName]] }}
                         </template>
-                        
+                    </div>
+                    <div v-if="isAdmin" class="px-6 py-4 border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400 whitespace-normal">
+                        <button @click="editField(displayName)" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">
+                            Edit
+                        </button>
                     </div>
                 </div>
-                <template v-if="isAdmin">
-                    <div v-for="adminField in adminFields" :key="adminField" class="grid grid-cols-1 md:grid-cols-2 bg-white dark:bg-gray-800">
-                    <div class="px-6 py-4 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                        {{ adminField }}
-                    </div>
-                    <div class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {{ businessData[adminFieldMapping[adminField]] }}
-                    </div>
-                    </div>
-                </template>
             </div>
         </div>
 
@@ -136,31 +130,6 @@ export default {
     const toggleModalSize = () => {
         isExpanded.value = !isExpanded.value;
     }
-
-    // const generatePDF = () => {
-    //     const businessNameEncoded = encodeURIComponent(businessName.value);
-
-    //     axios.get(`https://localhost:5000/print_business_info?name=${businessNameEncoded}`, {
-    //         responseType: 'blob',
-    //     })
-    //     .then(response => {
-    //         // Create a URL for the blob
-    //         const fileURL = window.URL.createObjectURL(new Blob([response.data]));
-    //         const fileLink = document.createElement('a');
-
-    //         fileLink.href = fileURL;
-    //         fileLink.setAttribute('download', `${businessName.value}.pdf`);
-    //         document.body.appendChild(fileLink);
-
-    //         fileLink.click();
-
-    //         document.body.removeChild(fileLink);
-    //         window.URL.revokeObjectURL(fileURL);
-    //     })
-    //     .catch(error => {
-    //         console.error('Error fetching PDF:', error);
-    //     });
-    // };
 
     const generatePDF = () => {
         const businessNameEncoded = encodeURIComponent(businessName.value);
@@ -273,5 +242,13 @@ export default {
 
 svg {
     color: black;
+}
+.whitespace-normal {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    word-break: normal;
 }
 </style>
