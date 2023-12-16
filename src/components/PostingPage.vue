@@ -115,7 +115,6 @@
 </template>
 
 <script>
-import { checkAdminStatus } from '@/adminCheck';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { TrashIcon, XMarkIcon } from '@heroicons/vue/24/outline';
 import axios from 'axios';
@@ -123,10 +122,11 @@ import Cookies from 'js-cookie';
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
-import api from '../api.js';
-import EventBus from '../eventBus';
-import DarkModeSwitch from './DarkModeSwitch.vue';
 import BusinessForm from './Forms/BusinessForm.vue';
+import DarkModeSwitch from './UI Enhancements/DarkModeSwitch.vue';
+import { checkAdminStatus } from './utils/adminCheck';
+import api from './utils/api.js';
+import EventBus from './utils/eventBus';
 
 export default {
     name: 'PostingPage',

@@ -44,8 +44,8 @@
 import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import DarkModeSwitch from './DarkModeSwitch.vue';
 import LoginComponent from './Forms/LoginComponent.vue';
+import DarkModeSwitch from './UI Enhancements/DarkModeSwitch.vue';
 
 export default {
   components: {

@@ -8,7 +8,7 @@
 <script>
 import axios from 'axios';
 import { inject, nextTick, ref } from 'vue';
-import EventBus from '../../../eventBus';
+import EventBus from '../../utils/eventBus';
   
     export default {
       setup() {

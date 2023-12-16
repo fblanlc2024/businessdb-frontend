@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { store } from '../../main';
 import EventBus from './eventBus';
-import { store } from './main';
 
 const instance = axios.create({
   baseURL: 'https://localhost:5000'

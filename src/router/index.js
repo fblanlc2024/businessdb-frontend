@@ -4,7 +4,7 @@ import BusinessInfo from '../components/BusinessInfo.vue';
 import EntryPage from '../components/EntryPage.vue';
 import ManageAccount from '../components/ManageAccount.vue';
 import PostingPage from '../components/PostingPage.vue';
-import EventBus from '../eventBus';
+import EventBus from '../components/utils/eventBus';
 import { store } from '../main';
 
 const routes = [
