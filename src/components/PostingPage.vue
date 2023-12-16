@@ -125,8 +125,8 @@ import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import api from '../api.js';
 import EventBus from '../eventBus';
-import BusinessForm from './BusinessForm.vue';
 import DarkModeSwitch from './DarkModeSwitch.vue';
+import BusinessForm from './Forms/BusinessForm.vue';
 
 export default {
     name: 'PostingPage',

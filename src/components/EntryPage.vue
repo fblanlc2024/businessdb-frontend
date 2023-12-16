@@ -18,7 +18,6 @@
       <span class="relative transition duration-300 group-hover:text-white ease">Log In</span>
     </button>
 
-    <!-- Dialog with SignupComponent -->
     <TransitionRoot :show="isOpen" as="template">
       <Dialog as="div" @close="closeModal" class="fixed inset-0 overflow-y-auto">
         <div class="flex min-h-full items-center justify-center p-4 text-center">
@@ -32,7 +31,7 @@
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel class="w-full md:w-[800px] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all z-40">
-              <SignupComponent />
+              <LoginComponent />
             </DialogPanel>
           </TransitionChild>
         </div>
@@ -46,11 +45,11 @@ import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessu
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import DarkModeSwitch from './DarkModeSwitch.vue';
-import SignupComponent from './SignupComponent.vue';
+import LoginComponent from './Forms/LoginComponent.vue';
 
 export default {
   components: {
-    SignupComponent,
+    LoginComponent,
     TransitionRoot,
     TransitionChild,
     Dialog,
