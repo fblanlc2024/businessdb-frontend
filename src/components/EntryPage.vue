@@ -1,10 +1,17 @@
 <template>
   <DarkModeSwitch></DarkModeSwitch>
+  <div>
+    <input v-model="userMessage" @keyup.enter="sendMessage" placeholder="Type your message here">
+    <button @click="sendMessage">Send</button>
+    <div v-if="aiResponse">
+      <p>AI Response: {{ aiResponse }}</p>
+    </div>
+  </div>
+
   <div class="flex flex-col justify-center items-center h-screen space-y-4">
     <div class="opacity-0 animate-fadeIn animation-delay-500">
       <h1 class="text-7xl font-mono mb-4">Welcome</h1>
     </div>
-    
 
     <div class="opacity-0 animate-fadeIn animation-delay-1000">
       <p class="text-lg font-mono mb-4">Please log in to view your school's business clients.</p>
@@ -42,6 +49,7 @@
 
 <script>
 import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue';
+import axios from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import LoginComponent from './Forms/LoginComponent.vue';
@@ -59,6 +67,57 @@ export default {
   setup() {
     const router = useRouter();
     const isOpen = ref(false);
+    const userMessage = ref('');
+    const aiResponse = ref('');
+
+
+    const formatMessage = (message) => {
+      let formattedMessage = message
+        .replace(/ \./g, '.') // Replace ' .' with '.'
+        .replace(/ ,/g, ',') // Replace ' ,' with ','
+        .replace(/ \?/g, '?') // Replace ' ?' with '?'
+        .replace(/ !/g, '!') // Replace ' !' with '!'
+        .replace(/ '/g, '\''); // Replace ' '' with '''
+
+      // Remove the last character
+      if (formattedMessage.length > 0) {
+        formattedMessage = formattedMessage.substring(0, formattedMessage.length - 1);
+      }
+
+      return formattedMessage;
+    };
+
+    const fetchData = async () => {
+      try {
+        const response = await axios.post('https://business-chatbot.sethchangcom.workers.dev', {
+          message: userMessage.value
+        });
+        let fullMessage = '';
+        
+        const chunks = response.data.split('\n');
+        for (const chunk of chunks) {
+          if (chunk.includes('[DONE]')) {
+            break;  // Stop processing when '[DONE]' is found
+          }
+          const match = chunk.match(/data: (.+)/);
+          if (match && match[1]) {
+            fullMessage += JSON.parse(match[1]).response; // Accumulate response parts
+          }
+        }
+        
+        aiResponse.value = formatMessage(fullMessage); // Format and set the full message
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    const sendMessage = () => {
+      if (userMessage.value.trim()) {
+        fetchData();
+        userMessage.value = '';
+      }
+    };
+
 
     const openModal = () => {
       isOpen.value = true;
@@ -69,21 +128,22 @@ export default {
     };
 
     const redirectToLogin = () => {
-      router.push({
-        name: 'LoginPage'
-      });
+      router.push({ name: 'LoginPage' });
     };
 
     return {
       redirectToLogin,
       isOpen,
       openModal,
-      closeModal
+      closeModal,
+      userMessage,
+      aiResponse,
+      sendMessage,
+      formatMessage
     };
   }
 }
 </script>
-
 
 <style scoped>
 @keyframes fadeIn {
