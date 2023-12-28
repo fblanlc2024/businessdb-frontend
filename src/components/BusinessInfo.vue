@@ -13,6 +13,7 @@
         </div>
         <TableDisplay></TableDisplay>
         <PrintReport></PrintReport>
+        <EditButton></EditButton>
     </div>
     <MapDisplay></MapDisplay>
 </template>  
@@ -20,6 +21,7 @@
 <script>
 import { computed, provide, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import EditButton from './Data Display/Info Table Components/EditButton.vue';
 import MapDisplay from './Data Display/Info Table Components/MapDisplay.vue';
 import PrintReport from './Data Display/Info Table Components/PrintReport.vue';
 import TableDisplay from './Data Display/Info Table Components/TableDisplay.vue';
@@ -30,7 +32,8 @@ export default {
     MapDisplay,
     PrintReport,
     TableDisplay,
-    DarkModeSwitch
+    DarkModeSwitch,
+    EditButton
   },
   setup() {
     const businessData = ref({}); 
@@ -39,6 +42,8 @@ export default {
     const route = useRoute();
     const isDialogOpen = ref(false);
     const mapEmbedUrl = ref('');
+    const isEditing = ref(false);
+    const editedData = ref({});
     const isExpanded = ref(false);
     const isAdmin = ref(false);
     const adminFields = ref(["Yearly Revenue", "Employee Count", "Customer Satisfaction", "Website Traffic"]);
@@ -113,6 +118,8 @@ export default {
     provide('formattedAvailability', formattedAvailability);
     provide('formattedAddress', formattedAddress);
     provide('openModal', openModal);
+    provide('isEditing', isEditing);
+    provide('editedData', editedData);
 
     return {
         businessData,
@@ -128,7 +135,9 @@ export default {
         isAdmin,
         adminFieldMapping,
         adminFields,
-        openModal
+        openModal,
+        isEditing,
+        editedData
     };
   }
 };

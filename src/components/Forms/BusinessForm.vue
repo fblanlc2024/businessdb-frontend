@@ -70,7 +70,7 @@ import ResourcesAvailable from './Business Form Components/ResourcesAvailable.vu
         "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
         "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
       ]);
-      const countries = ref(["US, CA, MX"]);
+      const countries = ref(["US", "CA", "MX"]);
 
 
       const hasAvailableResourcesBoolean = computed({

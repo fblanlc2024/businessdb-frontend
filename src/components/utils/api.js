@@ -10,6 +10,7 @@ const instance = axios.create({
 let isRefreshing = false;
 let refreshSubscribers = [];
 
+// Put the requests in a stack to be pushed in a queue?
 function subscribeTokenRefresh(cb) {
   refreshSubscribers.push(cb);
 }

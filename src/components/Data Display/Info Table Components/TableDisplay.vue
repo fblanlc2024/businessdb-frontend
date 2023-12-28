@@ -1,28 +1,30 @@
 <template>
     <div class="max-w-4xl mx-auto overflow-hidden bg-white shadow-lg rounded-lg dark:bg-gray-800 mt-8 mb-8">
         <div class="data-display-for-print divide-y divide-gray-200 dark:divide-gray-700">
-            <div v-for="(displayName, index) in keys" :key="displayName" :class="{'grid grid-cols-2': !isAdmin, 'grid grid-cols-3': isAdmin}">
-                <div :class="['px-6 py-4 text-sm font-medium text-gray-900 dark:text-white whitespace-normal', isAdmin || index < keys.length ? 'border-r' : '', 'border-gray-200 dark:border-gray-700']">
+            <div v-for="displayName in keys" :key="displayName" class="grid grid-cols-2">
+                <div class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white whitespace-normal border-r border-gray-200 dark:border-gray-700">
                     {{ displayName }}
                 </div>
-                <div :class="['px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-normal', isAdmin ? 'border-r' : '', mapping[displayName] === 'address' ? 'cursor-pointer hover:underline' : '', 'border-gray-200 dark:border-gray-700']" @click="mapping[displayName] === 'address' ? openModal(businessData.address) : null">
-                    <template v-if="mapping[displayName] === 'resources_available'">
-                        {{ formattedResourcesAvailable }}
-                    </template>
-                    <template v-else-if="mapping[displayName] === 'has_available_resources'">
-                        {{ formattedAvailability }}
-                    </template>
-                    <template v-else-if="mapping[displayName] === 'address'">
-                        {{ formattedAddress }}
+                <div :class="['px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-normal', 'border-gray-200 dark:border-gray-700']">
+                    <template v-if="!isEditing">
+                        <!-- Display the value -->
+                        <template v-if="mapping[displayName] === 'resources_available'">
+                            {{ formattedResourcesAvailable }}
+                        </template>
+                        <template v-else-if="mapping[displayName] === 'has_available_resources'">
+                            {{ formattedAvailability }}
+                        </template>
+                        <template v-else-if="mapping[displayName] === 'address'">
+                            {{ formattedAddress }}
+                        </template>
+                        <template v-else>
+                            {{ businessData[mapping[displayName]] }}
+                        </template>
                     </template>
                     <template v-else>
-                        {{ businessData[mapping[displayName]] }}
+                        <!-- Show input field when in edit mode -->
+                        <input type="text" v-model="editedData[mapping[displayName]]" class="w-full px-2 py-1 border rounded">
                     </template>
-                </div>
-                <div v-if="isAdmin" class="px-6 py-4 border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400 whitespace-normal">
-                    <button @click="editField(displayName)" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">
-                        Edit
-                    </button>
                 </div>
             </div>
         </div>
@@ -50,6 +52,8 @@ export default {
     const formattedAvailability = inject('formattedAvailability');
     const formattedAddress = inject('formattedAddress');
     const openModal = inject('openModal');
+    const isEditing = inject('isEditing');
+    const editedData = inject('editedData');
 
     onMounted(async () => {
         businessName.value = route.query.businessName;
@@ -82,7 +86,9 @@ export default {
         adminFieldMapping,
         adminFields,
         mapping,
-        openModal
+        openModal,
+        isEditing,
+        editedData
     };
   }
 };
