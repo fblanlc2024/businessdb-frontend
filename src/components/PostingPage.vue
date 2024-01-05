@@ -166,7 +166,7 @@ export default {
         };
 
         const fetchCurrentUser = () => {
-            const csrf_access = store.state.accounts.access_csrf;
+            const csrf_access = store.getters['accounts/getAccessCSRF'];
             if (!csrf_access) {
                 fetchUserFromGoogleSession();
                 return;
@@ -190,7 +190,7 @@ export default {
             });
         };
 
-        const fetchUserFromGoogleSession = () => {
+        const fetchUserFromGoogleSession = async() => {
             console.log("Fetching Google session user...");
             api.get('/google_user_data', {
                 withCredentials: true
@@ -210,10 +210,12 @@ export default {
                 console.error('Error fetching Google session user:', error);
             });
         };
+
         const logOut = () => {
             axios.post('https://localhost:5000/logout', {}, { withCredentials: true })
                 .then(response => {
                 console.log(response.data.message);
+                Cookies.remove('logged_in')
                 store.dispatch('accounts/logOut');
                 router.push('/');
             })
@@ -254,37 +256,64 @@ export default {
       };
 
 
-        onMounted(async () => {
+      onMounted(async () => {
+        try {
+          EventBus.on('business-added', handleBusinessAdded);
+          EventBus.on('close-modal', () => {
+              console.log("EventBus 'close-modal' event received");
+              closeModal();
+          });
+
+          // Fetch current user data
+          let userDataFetched = false;
+          try {
+            await fetchCurrentUser();
+            userDataFetched = true;
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+          }
+
+          // Retry logic for admin status check
+          let adminStatusCheckAttempts = 0;
+          const maxAdminStatusCheckAttempts = 3;
+          while (!userDataFetched && adminStatusCheckAttempts < maxAdminStatusCheckAttempts) {
             try {
-                EventBus.on('business-added', handleBusinessAdded);
-                EventBus.on('close-modal', () => {
-                    console.log("EventBus 'close-modal' event received");
-                    closeModal();
-                });
-                fetchCurrentUser();
-                isAdmin.value = await checkAdminStatus();
-                console.log("Admin value", isAdmin.value);
-                const response = await axios.get('https://localhost:5000/api/businesses');
-                businesses.value = response.data;
+              // Retry fetch user data
+              await fetchCurrentUser();
+              userDataFetched = true;
             } catch (error) {
-                console.error(error);
+              console.error('Error retrying to fetch user data:', error);
+              adminStatusCheckAttempts++;
             }
-        });
+          }
 
-        onUnmounted(() => {
-          EventBus.off('close-modal', closeModal);
-          EventBus.off('business-added', handleBusinessAdded);
-        });
+          // Check admin status only after successfully fetching user data
+          if (userDataFetched) {
+            isAdmin.value = await checkAdminStatus();
+          }
 
-        const sortedAndFilteredBusinesses = computed(() => {
-          if (!businesses.value) return [];
+          // Fetch businesses
+          const response = await axios.get('https://localhost:5000/api/businesses');
+          businesses.value = response.data;
+        } catch (error) {
+          console.error('Error during initial data fetch:', error);
+        }
+      });
 
-          let filteredBusinesses = businesses.value.filter(b => b != null);
-          let val = textInput.value.toUpperCase();
-          return filteredBusinesses
-            .filter(business => business.business_name.toUpperCase().includes(val))
-            .sort((a, b) => a.business_name.localeCompare(b.business_name));
-        });
+      onUnmounted(() => {
+        EventBus.off('close-modal', closeModal);
+        EventBus.off('business-added', handleBusinessAdded);
+      });
+
+      const sortedAndFilteredBusinesses = computed(() => {
+        if (!businesses.value) return [];
+
+        let filteredBusinesses = businesses.value.filter(b => b != null);
+        let val = textInput.value.toUpperCase();
+        return filteredBusinesses
+          .filter(business => business.business_name.toUpperCase().includes(val))
+          .sort((a, b) => a.business_name.localeCompare(b.business_name));
+      });
 
         const redirectToBusinessInfo = (business) => {
             router.push({

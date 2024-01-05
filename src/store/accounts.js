@@ -1,19 +1,26 @@
 export default {
   namespaced: true,
   state: {
-    userId: null,
-    username: null,
+    userId: localStorage.getItem('userId') === "null" ? null : localStorage.getItem('userId'),
+    username: localStorage.getItem('username') === "null" ? null : localStorage.getItem('username'),
     access_csrf: localStorage.getItem('access_csrf') === "null" ? null : localStorage.getItem('access_csrf'),
     refresh_csrf: localStorage.getItem('refresh_csrf') === "null" ? null : localStorage.getItem('refresh_csrf'),
     isAuthenticated: localStorage.getItem('isAuthenticated') === "true" ? true : false,
-    isGoogleLogin: localStorage.getItem('isGoogleLogin') === "true" ? true : false
+    isGoogleLogin: localStorage.getItem('isGoogleLogin') === "true" ? true : false,
+    googleUserCompleted: false
   }, 
   mutations: {
     setUserId(state, id) {
-      if (id !== undefined) state.userId = id;
+      if (id !== undefined) {
+        state.userId = id;
+        localStorage.setItem('userId', id);
+      }
     },
     setUsername(state, user) {
-      if (user !== undefined) state.username = user;
+      if (user !== undefined) {
+        state.username = user;
+        localStorage.setItem('username', user);
+      }
     },
     setAccessCSRF(state, access_csrf) {
       if (access_csrf !== undefined) {
@@ -35,6 +42,9 @@ export default {
       state.isGoogleLogin = status;
       localStorage.setItem('isGoogleLogin', status);
     },
+    setGoogleUserDataCompleted(state, status) {
+      state.googleUserDataCompleted = status;
+    }
   },  
   actions: {
     setUserCredentials({ commit }, { id, username, access_csrf, refresh_csrf }) {
@@ -45,9 +55,11 @@ export default {
       commit('setAuthentication', true);
     },
     logOut({commit}) {
+      localStorage.removeItem('userId');
+      localStorage.removeItem('username');
       localStorage.removeItem('access_csrf');
       localStorage.removeItem('refresh_csrf');
-      localStorage.removeItem('isAutneticated');
+      localStorage.removeItem('isAuthenticated');
       localStorage.removeItem('isGoogleLogin');
 
       commit('setUserId', null);
@@ -68,6 +80,7 @@ export default {
     getAccessCSRF: state => state.access_csrf,
     getRefreshCSRF: state => state.refresh_csrf,
     getAuthentication: state => state.isAuthenticated,
-    getGoogleLogin: state => state.isGoogleLogin
+    getGoogleLogin: state => state.isGoogleLogin,
+    googleUserDataCompleted: state => state.googleUserDataCompleted
   }
 }

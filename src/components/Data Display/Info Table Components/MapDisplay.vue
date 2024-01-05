@@ -24,7 +24,7 @@
 
 <script>
 import { Dialog, DialogOverlay, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue';
-import { inject } from 'vue';
+import { inject, provide } from 'vue';
 
 export default {
   components: {
@@ -38,7 +38,7 @@ export default {
     const isDialogOpen = inject('isDialogOpen');
     const mapEmbedUrl = inject('mapEmbedUrl');
     const isExpanded = inject('isExpanded');
-    const formattedAddress = inject('formattedAddress');
+    const formattedAddresses = inject('formattedAddresses');
     const openModal = inject('openModal');
 
     const closeModal = () => {
@@ -49,6 +49,9 @@ export default {
         isExpanded.value = !isExpanded.value;
     }
 
+    provide('closeModal', closeModal);
+    provide('toggleModalSize', toggleModalSize);
+
     return {
         isDialogOpen,
         mapEmbedUrl,
@@ -56,7 +59,7 @@ export default {
         openModal,
         closeModal,
         toggleModalSize,
-        formattedAddress
+        formattedAddresses
     };
   }
 };

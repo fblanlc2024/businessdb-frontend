@@ -39,7 +39,6 @@ router.beforeEach((to, from, next) => {
     return;
   }
 
-  // Allow the navigation for all other cases
   next();
 });
 
