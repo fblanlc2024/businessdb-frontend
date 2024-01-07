@@ -23,7 +23,7 @@
                         </template>
                     </template>
                     <template v-else>
-                        <div v-if="item.value === 'has_available_resources' && isEditing" class="input-edit -my-2">
+                        <div v-if="item.value === 'has_available_resources' && isEditing" class="-my-2">
                             <select v-model="editedData[item.value]" class="custom-select">
                                 <option value="true">Yes</option>
                                 <option value="false">No</option>
@@ -31,12 +31,13 @@
                         </div>
                         <div v-else-if="item.value === 'contact_info'">
                             <input
-                                class="dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full"
+                                class="-my-10 dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full text-sm"
                                 type="text" v-model="formattedContactInfo"/>
                         </div>
                         <div v-else-if="item.value === 'customer_satisfaction'">
                             <input
-                                :class="['input-edit text-sm', inputClass(floatError), 'dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full']"
+                                :class="['-my-10 text-sm', 'dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full']"
+                                :style="{borderColor: floatError ? 'red' : ''}"
                                 type="text"
                                 v-model="editedData['customer_satisfaction']"
                             />
@@ -44,7 +45,8 @@
                         </div>
                         <div v-else-if="item.value === 'yearly_revenue'">
                             <input 
-                                :class="['input-edit text-sm', inputClass(yearlyRevenueError), 'dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full']"
+                                :class="['-my-10 text-sm', 'dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full']"
+                                :style="{borderColor: yearlyRevenueError ? 'red' : ''}"
                                 type="text" 
                                 v-model="editedData['yearly_revenue']" 
                             />
@@ -53,7 +55,8 @@
 
                         <div v-else-if="item.value === 'employee_count'">
                             <input 
-                                :class="['input-edit text-sm', inputClass(employeeCountError), 'dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full']"
+                                :class="['-my-10 text-sm', 'dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full']"
+                                :style="{borderColor: employeeCountError ? 'red' : ''}"
                                 type="text" 
                                 v-model="editedData['employee_count']" 
                             />
@@ -62,17 +65,18 @@
 
                         <div v-else-if="item.value === 'website_traffic'">
                             <input 
-                                :class="['input-edit text-sm', inputClass(websiteTrafficError), 'dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full']"
+                                :class="['text-sm', 'dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full']"
+                                :style="{borderColor: websiteTrafficError ? 'red' : ''}"
                                 type="text" 
                                 v-model="editedData['website_traffic']" 
                             />
-                            <p v-if="websiteTrafficError" class="text-red-500 text-xs mt-3 -mb-3">{{ websiteTrafficError }}</p>
+                            <p v-if="websiteTrafficError" class="text-red-500 text-xs mt-1 -mb-3">{{ websiteTrafficError }}</p>
                         </div>
                         <input 
                             v-else 
                             type="text" 
                             v-model="editedData[item.value]" 
-                            class="input-edit -my-10 text-sm dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full"
+                            class="-my-10 text-sm dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full"
                         >
                     </template>
                 </div>
@@ -87,8 +91,19 @@
                 <div class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white whitespace-normal border-r border-gray-200 dark:border-gray-700">
                     Address {{ index + 1 }}
                 </div>
-                <div class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-normal border-gray-200 dark:border-gray-700">
+                <div 
+                    :class="['px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-normal', 'cursor-pointer hover:underline', 'border-gray-200 dark:border-gray-700']"
+                    @click="openModal(address)"
+                >
                     {{ address }}
+                </div>
+                <div class="flex space-x-2">
+                    <button @click="openEditModal(index, addressData[index])" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Edit
+                    </button>
+                    <button @click="openDeleteModal(index)" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                        Delete
+                    </button>
                 </div>
             </div>
         </div>
@@ -97,7 +112,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import { inject, onMounted } from 'vue';
 import MapDisplay from '../Info Table Components/MapDisplay.vue';
 
@@ -133,6 +147,10 @@ export default {
     const websiteTrafficError = inject('websiteTrafficError');
     const floatError = inject('floatError');
     const inputClass = inject('inputClass');
+    const addressIds = inject('addressIds');
+    const fetchBusinessData = inject('fetchBusinessData');
+    const openEditModal = inject('openEditModal');
+    const openDeleteModal = inject('openDeleteModal');
 
     onMounted(async () => {
         businessName.value = route.query.businessName;
@@ -146,33 +164,6 @@ export default {
             console.error('Business name not provided in query');
         }
     });
-
-    const fetchBusinessData = async () => {
-        try {
-            const response = await axios.get(`https://localhost:5000/api/business_info?name=${encodeURIComponent(businessName.value)}`, {withCredentials: true});
-            console.log(response.data);
-
-            const responseData = response.data;
-
-            if (responseData.business_info) {
-                businessData.value = responseData.business_info;
-                businessId.value = responseData.business_info.business_id;
-                console.log("business id value: " + businessId.value);
-            } else {
-                console.error('Business information not found');
-            }
-
-            if (responseData.addresses && responseData.addresses.length > 0) {
-                addressData.value = responseData.addresses;
-            } else {
-                console.error('Address information not found');
-            }
-        } catch (error) {
-            console.error('Error fetching business information:', error);
-        }
-    }
-
-
 
     return {
         businessData,
@@ -201,14 +192,18 @@ export default {
         employeeCountError,
         websiteTrafficError,
         floatError,
-        inputClass
+        inputClass,
+        addressIds,
+        openEditModal,
+        openDeleteModal
     };
   }
 };
 </script>
 
 <style>
-.custom-select {
+/* Dark mode styling */
+.dark .custom-select {
   background-color: #374151; /* Dark mode background color */
   color: white; /* Text color for dark mode */
   border: 1px solid #ddd;
@@ -220,10 +215,28 @@ export default {
   appearance: none; /* Removes default styling */
 }
 
-/* Attempt to style the options */
-.custom-select option {
+.dark .custom-select option {
   background-color: #374151; /* Same as select for consistency */
   color: white; /* Same as select for readability */
+  padding: 0.5rem 1rem; /* Same padding as the select, but may not be applied in all browsers */
+}
+
+/* Light mode styling */
+.custom-select {
+  background-color: white; /* Light mode background color */
+  color: #374151; /* Text color for light mode */
+  border: 1px solid #374151;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.75rem; /* Adjust padding to match the input height */
+  width: 100%; /* Full width */
+  -webkit-appearance: none; /* Removes default styling on iOS */
+  -moz-appearance: none; /* Removes default styling in Firefox */
+  appearance: none; /* Removes default styling */
+}
+
+.custom-select option {
+  background-color: white; /* Same as select for consistency */
+  color: #374151; /* Same as select for readability */
   padding: 0.5rem 1rem; /* Same padding as the select, but may not be applied in all browsers */
 }
 </style>

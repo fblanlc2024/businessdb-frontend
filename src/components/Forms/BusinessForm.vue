@@ -8,56 +8,7 @@
       <input id="businessName" v-model="businessName" required placeholder="Enter business name" class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
     </div>
 
-    <!-- Address Lookup -->
-    <div>
-      <label for="addressLookup" class="block text-sm font-medium text-gray-900">Address Lookup</label>
-      <input id="addressLookup" v-model="addressLookupQuery" placeholder="Start typing an address..." class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-      <div v-if="addressSuggestions.length" class="mt-2 bg-white rounded-md shadow-lg">
-        <ul>
-          <li v-for="suggestion in addressSuggestions" :key="suggestion.fsq_id" @click="selectAddressSuggestion(suggestion)" class="suggestion-item">
-            {{ suggestion.name }} - {{ suggestion.location.formatted_address }}
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Address Fields -->
-    <div>
-      <label class="block text-sm font-medium text-gray-900">Address</label>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px;">
-        <div>
-          <input id="addressLine1" v-model="address.line1" class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Address Line 1" />
-        </div>
-        <div>
-          <input id="addressLine2" v-model="address.line2" placeholder="Address Line 2" class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-        </div>
-        <div>
-          <input v-model="address.city" placeholder="City" class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-        </div>
-        <div>
-          <input 
-            id="zipcode"
-            v-model="address.zipcode" 
-            :class="inputClass(zipcodeErrMsg)" 
-            placeholder="Zipcode" 
-          />
-          <p v-if="zipcodeErrMsg" class="text-red-500 text-xs">{{ zipcodeErrMsg }}</p>
-        </div>
-        <div>
-          <select v-model="address.state" class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" :class="{'selected-text': address.state !== ''}">
-            <option value="" disabled selected>Select State</option>
-            <option v-for="state in states" :key="state" :value="state">{{ state }}</option>
-          </select>
-        </div>
-
-        <div>
-          <select v-model="address.country" class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" :class="{'selected-text': address.country !== ''}">
-            <option value="" disabled selected>Select Country</option>
-            <option v-for="country in countries" :key="country" :value="country">{{ country }}</option>
-          </select>
-        </div>
-      </div>
-    </div>
+    <AddressLookup></AddressLookup>
 
     <!-- Organization Type -->
     <div>
@@ -84,68 +35,94 @@
     <!-- Contact Info -->
     <div>
       <label for="contactInfo" class="block text-sm font-medium text-gray-900">Contact Info</label>
-      <input id="contactInfo" v-model="contactInfo" required placeholder="Enter contact info" class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+      <input id="contactInfo" v-model="contactInfo" @input="formatPhoneNumber" required placeholder="Enter contact info" :class=inputClass(contactInfoErrMsg) />
+      <p v-if="contactInfoErrMsg" class="text-red-500 text-xs">{{ contactInfoErrMsg }}</p>
     </div>
 
-    <div class="space-y-6">
-      <p v-if="formErrMsg" class="text-sm text-red-600 mt-1">{{ formErrMsg }}</p>
-      <button @click="addBusiness" class="w-full rounded-md bg-indigo-600 px-3 py-2 text-white shadow-sm hover:bg-indigo-500">Add Business</button>
-    </div>
+
+      <div>
+        <label for="yearlyRevenue" class="block text-sm font-medium text-gray-900">Yearly Revenue</label>
+        <input id="yearlyRevenue" v-model="yearlyRevenue" required placeholder="Enter yearly revenue" :class="inputClass(yearlyRevenueErrMsg)" />
+        <p v-if="yearlyRevenueErrMsg" class="text-red-500 text-xs">{{ yearlyRevenueErrMsg }}</p>
+      </div>
+      <div>
+        <label for="employeeCount" class="block text-sm font-medium text-gray-900">Employee Count</label>
+        <input id="employeeCount" v-model="employeeCount" required placeholder="Enter employee count" :class="inputClass(employeeCountErrMsg)" />
+        <p v-if="employeeCountErrMsg" class="text-red-500 text-xs">{{ employeeCountErrMsg }}</p>
+      </div>
+      <div>
+        <label for="customerSatisfaction" class="block text-sm font-medium text-gray-900">Customer Satisfaction</label>
+        <input id="customerSatisfaction" v-model="customerSatisfaction" required placeholder="Enter customer satisfaction" :class="inputClass(customerSatisfactionErrMsg)" />
+        <p v-if="customerSatisfactionErrMsg" class="text-red-500 text-xs">{{ customerSatisfactionErrMsg }}</p>
+      </div>
+      <div>
+        <label for="websiteTraffic" class="block text-sm font-medium text-gray-900">Website Traffic</label>
+        <input id="websiteTraffic" v-model="websiteTraffic" required placeholder="Enter website traffic" :class="inputClass(websiteTrafficErrMsg)" />
+        <p v-if="websiteTrafficErrMsg" class="text-red-500 text-xs">{{ websiteTrafficErrMsg }}</p>
+      </div>
+      <div>
+        <p v-if="formErrMsg" class="text-sm text-red-600 mt-1 mb-2">{{ formErrMsg }}</p>
+        <button @click="addBusiness" class="w-full rounded-md bg-indigo-600 px-3 py-2 text-white shadow-sm hover:bg-indigo-500">Add Business</button>
+      </div>
   </div>
+
+
 </template>
   
 <script>
 import axios from 'axios';
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, inject, nextTick, provide, ref } from 'vue';
 import EventBus from '../utils/eventBus';
+import AddressLookup from './Address Components/AddressLookup.vue';
 
   export default {
+    components: {
+      AddressLookup
+    },
     setup() {
+      const address = ref({
+            line1: '',
+            line2: '',
+            city: '',
+            state: '',
+            zipcode: '',
+            country: ''
+        });
+
       const addressLookupQuery = ref('');
       const addressSuggestions = ref([]);
       const zipcodeErrMsg = ref('');
+      const states = ref([
+          "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+          "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+          "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+          "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+          "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+      ]);
+      
+      const countries = ref(["US", "CA", "MX", "UK"]);
       const businessName = ref('');
       const contactInfo = ref('');
       const formErrMsg = ref('');
       const hasAvailableResources = ref('');
       const organizationType = ref('');
       const resourcesAvailable = ref('');
-      const address = ref({
-        line1: '',
-        line2: '',
-        city: '',
-        state: '',
-        zipcode: '',
-        country: ''
-      });
+      const yearlyRevenue = ref('');
+      const employeeCount = ref('');
+      const customerSatisfaction = ref('');
+      const websiteTraffic = ref('');
+      const yearlyRevenueErrMsg = ref('');
+      const employeeCountErrMsg = ref('');
+      const websiteTrafficErrMsg = ref('');
+      const customerSatisfactionErrMsg = ref('');
+      const contactInfoErrMsg = ref('');
 
-      const states = ref([
-        "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
-        "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
-        "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
-        "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
-        "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
-      ]);
-      const countries = ref(["US", "CA", "MX", "UK"]);
-
+      const isAdmin = inject('isAdmin');
 
       const hasAvailableResourcesBoolean = computed({
         get: () => hasAvailableResources.value === 'true',
         set: (newValue) => {
           hasAvailableResources.value = newValue ? 'true' : 'false';
-        }
-      });
-
-      watch(addressLookupQuery, async (newQuery) => {
-        if (newQuery && newQuery.length > 2) {
-          try {
-            const response = await axios.get(`https://localhost:5000/autocomplete?query=${newQuery}`);
-            addressSuggestions.value = response.data.results;
-          } catch (error) {
-            console.error('Error fetching address suggestions:', error);
-          }
-        } else {
-          addressSuggestions.value = [];
         }
       });
 
@@ -156,70 +133,101 @@ import EventBus from '../utils/eventBus';
         ];
       };
 
-      const fetchAddressSuggestions = async () => {
-        if (addressLookupQuery.value.length > 2) {
-          try {
-            const response = await axios.get(`https://localhost:5000/autocomplete?query=${addressLookupQuery.value}`);
-            addressSuggestions.value = response.data;
-          } catch (error) {
-            console.error('Error fetching address suggestions:', error);
-          }
+      const parseNumber = (value) => {
+        const parsedInt = parseInt(value);
+        if (!isNaN(parsedInt) && parsedInt.toString() === value.toString()) {
+          return parsedInt;
         }
+        return parseFloat(value);
       };
 
-      const selectAddressSuggestion = (suggestion) => {
-        const { location } = suggestion;
-        address.value = {
-          line1: location.address,
-          line2: '',
-          city: location.locality,
-          state: location.region,
-          zipcode: location.postcode,
-          country: location.country
-        };
-
-        addressSuggestions.value = [];
+      const formatBooleanValue = (value) => {
+        return value === 'true' || value === true ? 'Yes' : 'No';
       };
 
       const addBusiness = async () => {
-        console.log('Sending hasAvailableResources:', hasAvailableResourcesBoolean.value);
-        const businessData = {
-          business_name: businessName.value,
-          address: {
-            line1: address.value.line1,
-            line2: address.value.line2,
-            city: address.value.city,
-            state: address.value.state,
-            zipcode: address.value.zipcode,
-            country: address.value.country
-          },
-          organization_type: organizationType.value,
-          resources_available: resourcesAvailable.value,
-          has_available_resources: hasAvailableResourcesBoolean.value === 'true',
-          contact_info: contactInfo.value
-        };
+          formErrMsg.value = '';
+          zipcodeErrMsg.value = '';
+          yearlyRevenueErrMsg.value = '';
+          employeeCountErrMsg.value = '';
+          websiteTrafficErrMsg.value = '';
+          customerSatisfactionErrMsg.value = '';
+          contactInfoErrMsg.value = '';
 
-        try {
-          const response = await axios.post('https://localhost:5000/add_business', businessData);
-          console.log(response.data);
-          EventBus.emit('business-added', response.data);
-          EventBus.emit('close-modal');
-        } catch (error) {
-          if (error.response && error.response.data && error.response.data.error) {
-            let errorMsg = error.response.data.error;
-            errorMsg = errorMsg.replace(/['"]+/g, '').replace(/&quot;/g, '');
+          const businessData = {
+              business_name: businessName.value,
+              address: {
+                  line1: address.value.line1,
+                  line2: address.value.line2,
+                  city: address.value.city,
+                  state: address.value.state,
+                  zipcode: address.value.zipcode,
+                  country: address.value.country
+              },
+              organization_type: organizationType.value,
+              resources_available: resourcesAvailable.value,
+              has_available_resources: hasAvailableResourcesBoolean.value,
+              contact_info: unformatPhoneNumber(contactInfo.value),
+              yearly_revenue: parseInt(yearlyRevenue.value),
+              employee_count: parseInt(employeeCount.value),
+              customer_satisfaction: parseNumber(customerSatisfaction.value),
+              website_traffic: parseInt(websiteTraffic.value)
+          };
 
-            if (errorMsg.includes('zipcode')) {
-              zipcodeErrMsg.value = errorMsg;
-              scrollToField('zipcode');
-            } else {
-              zipcodeErrMsg.value = '';
-              formErrMsg.value = errorMsg;
-            }
-          } else {
-            formErrMsg.value = 'Network error. Please try again later.';
+          // Validate numeric fields
+          if (isNaN(businessData.yearly_revenue)) {
+              yearlyRevenueErrMsg.value = 'Yearly revenue must be a valid number.';
           }
-          console.error('Error adding business:', error);
+          if (isNaN(businessData.employee_count)) {
+              employeeCountErrMsg.value = 'Employee count must be a valid number.';
+          }
+          if (isNaN(businessData.customer_satisfaction)) {
+              customerSatisfactionErrMsg.value = 'Customer satisfaction must be a valid number.';
+          }
+          if (isNaN(businessData.website_traffic)) {
+              websiteTrafficErrMsg.value = 'Website traffic must be a valid number.';
+          }
+
+          // Check if any error messages were set
+          if (yearlyRevenueErrMsg.value || employeeCountErrMsg.value || customerSatisfactionErrMsg.value || websiteTrafficErrMsg.value) {
+              formErrMsg.value = 'Please correct the errors before submitting.';
+              return;
+          }
+
+          try {
+              const response = await axios.post('https://localhost:5000/add_business', businessData, { withCredentials: true });
+              console.log(response.data);
+              EventBus.emit('business-added', response.data);
+              EventBus.emit('close-modal');
+          } catch (error) {
+              if (error.response && error.response.data && error.response.data.error) {
+                  const errorMsg = error.response.data.error.replace(/['"]+/g, '').replace(/&quot;/g, '');
+                  handleErrorMessage(errorMsg);
+              } else {
+                  formErrMsg.value = 'Network error. Please try again later.';
+              }
+              console.error('Error adding business:', error);
+          }
+      };
+
+      const handleErrorMessage = (errorMsg) => {
+        if (errorMsg.includes('yearly_revenue')) {
+          yearlyRevenueErrMsg.value = errorMsg;
+          scrollToField('yearlyRevenue');
+        } else if (errorMsg.includes('employee_count')) {
+          employeeCountErrMsg.value = errorMsg;
+          scrollToField('employeeCount');
+        } else if (errorMsg.includes('customer_satisfaction')) {
+          customerSatisfactionErrMsg.value = errorMsg;
+          scrollToField('customerSatisfaction');
+        } else if (errorMsg.includes('website_traffic')) {
+          websiteTrafficErrMsg.value = errorMsg;
+          scrollToField('websiteTraffic');
+        } else if (errorMsg.includes('phone number')) {
+          contactInfoErrMsg.value = errorMsg;
+          scrollToField('contactInfoErrMsg');
+        } else {
+          formErrMsg.value = errorMsg;
         }
       };
 
@@ -230,6 +238,32 @@ import EventBus from '../utils/eventBus';
           element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       };
+
+      const formatPhoneNumber = () => {
+        let input = contactInfo.value;
+        input = input.replace(/\D/g, ''); // Remove all non-numeric characters
+        // Format as per desired pattern (e.g., (123) 456-7890)
+        if (input.length <= 3) {
+          input = `(${input}`;
+        } else if (input.length <= 6) {
+          input = `(${input.slice(0, 3)}) ${input.slice(3)}`;
+        } else {
+          input = `(${input.slice(0, 3)}) ${input.slice(3, 6)}-${input.slice(6, 10)}`;
+        }
+        contactInfo.value = input; // Update the reactive property
+      };
+
+      function unformatPhoneNumber(formattedValue) {
+          return formattedValue.replace(/[^\d]/g, '');
+      }
+
+      provide('address', address);
+      provide('addressLookupQuery', addressLookupQuery);
+      provide('addressSuggestions', addressSuggestions);
+      provide('zipcodeErrMsg', zipcodeErrMsg);
+      provide('states', states);
+      provide('countries', countries);
+      provide('inputClass', inputClass);
 
       return {
         address,
@@ -245,10 +279,22 @@ import EventBus from '../utils/eventBus';
         resourcesAvailable,
         states,
         countries,
+        isAdmin,
+        addBusiness,
+        yearlyRevenue,
+        customerSatisfaction,
+        employeeCount,
+        websiteTraffic,
+        yearlyRevenueErrMsg,
+        employeeCountErrMsg,
+        customerSatisfactionErrMsg,
+        websiteTrafficErrMsg,
+        contactInfoErrMsg,
         inputClass,
-        fetchAddressSuggestions,
-        selectAddressSuggestion,
-        addBusiness
+        parseNumber,
+        formatPhoneNumber,
+        unformatPhoneNumber,
+        formatBooleanValue
       };
     }
   }

@@ -14,12 +14,18 @@
         <TableDisplay></TableDisplay>
         <PrintReport></PrintReport>
         <EditBusinessButton></EditBusinessButton>
+        <button @click="openAddModal" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add Address</button>
+        <AddressModal :isOpen="isAddressModalOpen" @close="closeAddressModal" />
+        <DeleteAddressModal :isOpen="isDeleteModalOpen" @close="closeDeleteModal" />
     </div>
 </template>  
 
 <script>
+import axios from 'axios';
 import { computed, provide, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import AddressModal from './Data Display/Info Table Components/AddressModal.vue';
+import DeleteAddressModal from './Data Display/Info Table Components/DeleteAddressModal.vue';
 import EditBusinessButton from './Data Display/Info Table Components/EditBusinessButton.vue';
 import PrintReport from './Data Display/Info Table Components/PrintReport.vue';
 import TableDisplay from './Data Display/Info Table Components/TableDisplay.vue';
@@ -30,11 +36,14 @@ export default {
     PrintReport,
     TableDisplay,
     DarkModeSwitch,
-    EditBusinessButton
+    EditBusinessButton,
+    AddressModal,
+    DeleteAddressModal
   },
   setup() {
     const businessData = ref({});
     const addressData = ref([]);
+    const addressIds = ref([]);
     const businessName = ref('');
     const businessId = ref(null);
     const route = useRoute();
@@ -44,10 +53,17 @@ export default {
     const editedData = ref({});
     const isExpanded = ref(false);
     const isAdmin = ref(false);
+    const isEditMode = ref(false);
     const yearlyRevenueError = ref('');
     const employeeCountError = ref('');
     const websiteTrafficError = ref('');
     const floatError = ref('');
+    const isOpen = ref(false);
+    const isAddressModalOpen = ref(false);
+    const selectedIndex = ref(null);
+    const isDeleteModalOpen = ref(false);
+    const addressToDelete = ref(null);
+    const modalTitle = ref('Add Address');
     const keys = ref(["Business ID", "Phone Number", "Has Resources Available?", "Organization Type", "Types of Resources"]);
     const adminKeys = ref(["Yearly Revenue", "Employee Count", "Customer Satisfaction", "Website Traffic"]);
     const adminFieldMapping = {
@@ -64,6 +80,15 @@ export default {
       "Organization Type": "organization_type",
       "Types of Resources": "resources_available"
     };
+
+    const address = ref({
+        line1: '',
+        line2: '',
+        city: '',
+        state: '',
+        zipcode: '',
+        country: ''
+    });
 
     const displayKeys = computed(() => {
         let keysArray = keys.value.map(key => ({ label: key, value: mapping[key] }));
@@ -101,7 +126,8 @@ export default {
     const formattedAddresses = computed(() => {
         return addressData.value.map(addr => {
             return [
-                addr.line1, addr.city, addr.state, addr.zipcode, addr.country
+            (addr.address_line_1 !== undefined ? addr.address_line_1 : addr.line1),
+             addr.line2, addr.city, addr.state, addr.zipcode, addr.country
             ].filter(Boolean).join(", ");
         });
     });
@@ -122,6 +148,32 @@ export default {
         }
         isDialogOpen.value = true;
     };
+
+    const fetchBusinessData = async () => {
+        try {
+            const response = await axios.get(`https://localhost:5000/api/business_info?name=${encodeURIComponent(businessName.value)}`, {withCredentials: true});
+            console.log(response.data);
+
+            const responseData = response.data;
+
+            if (responseData.business_info) {
+                businessData.value = responseData.business_info;
+                businessId.value = responseData.business_info.business_id;
+                console.log("business id value: " + businessId.value);
+            } else {
+                console.error('Business information not found');
+            }
+
+            if (responseData.addresses && responseData.addresses.length > 0) {
+                addressData.value = responseData.addresses;
+                addressIds.value = responseData.addresses.map(address => address.address_id);
+            } else {
+                console.error('Address information not found');
+            }
+        } catch (error) {
+            console.error('Error fetching business information:', error);
+        }
+    }
 
     function formatPhoneNumber(value) {
         if (!value) {
@@ -145,13 +197,69 @@ export default {
 
     const inputClass = (error) => {
         return [
-            'input-edit -my-10 text-sm dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full',
+            '-my-10 text-sm dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full',
             error ? 'border-red-500' : ''
         ];
     };
 
+    const openAddressModal = () => {
+        isAddressModalOpen.value = true;
+    };
+
+    const closeAddressModal = () => {
+        isAddressModalOpen.value = false;
+    };
+
+    const openAddModal = () => {
+        isEditMode.value = false;
+        modalTitle.value = 'Add Address';
+        address.value = { line1: '', line2: '', city: '', state: '', zipcode: '', country: '' };
+        openAddressModal();  
+    };
+
+    const openEditModal = (index, addressInfo) => {
+        isEditMode.value = true;
+        modalTitle.value = 'Edit Address';
+        selectedIndex.value = index;
+        address.value = { 
+            line1: (addressInfo.address_line_1 !== undefined ? addressInfo.address_line_1 : addressInfo.line1), 
+            line2: addressInfo.line2, 
+            city: addressInfo.city, 
+            state: addressInfo.state, 
+            zipcode: addressInfo.zipcode, 
+            country: addressInfo.country 
+        };
+        openAddressModal();
+    };
+
+    const openDeleteModal = (index) => {
+      console.log("Preparing to delete address with ID:", addressIds.value[index]);
+      addressToDelete.value = addressIds.value[index];
+      isDeleteModalOpen.value = true;
+    };
+
+    const closeDeleteModal = () => {
+      isDeleteModalOpen.value = false;
+      addressToDelete.value = null;
+    };
+
+    const confirmDelete = async () => {
+      if (addressToDelete.value != null) {
+        await axios.delete(`https://localhost:5000/delete_address/${addressToDelete.value}`, {withCredentials: true})
+          .then(response => {
+            console.log("Address deleted successfully", response);
+            fetchBusinessData(); // Refresh data to reflect deletion
+          })
+          .catch(error => {
+            console.error("Error deleting address", error);
+          });
+      }
+      closeDeleteModal();
+    };
+
     provide('businessData', businessData);
-    provide('addressData', addressData)
+    provide('addressData', addressData);
+    provide('address', address);
     provide('businessName', businessName);
     provide('businessId', businessId);
     provide('keys', keys);
@@ -178,6 +286,21 @@ export default {
     provide('websiteTrafficError', websiteTrafficError);
     provide('floatError', floatError);
     provide('inputClass', inputClass);
+    provide('isAddressModalOpen', isAddressModalOpen);
+    provide('openAddressModal', openAddressModal);
+    provide('closeAddressModal', closeAddressModal);
+    provide('addressIds', addressIds);
+    provide('fetchBusinessData', fetchBusinessData);
+    provide('isEditMode', isEditMode);
+    provide('openAddModal', openAddModal);
+    provide('openEditModal', openEditModal);
+    provide('modalTitle', modalTitle);
+    provide('selectedIndex', selectedIndex);
+    provide('openDeleteModal', openDeleteModal);
+    provide('isDeleteModalOpen', isDeleteModalOpen);
+    provide('addressToDelete', addressToDelete);
+    provide('closeDeleteModal', closeDeleteModal);
+    provide('confirmDelete', confirmDelete);
 
     return {
         businessData,
@@ -205,7 +328,24 @@ export default {
         yearlyRevenueError,
         employeeCountError,
         websiteTrafficError,
-        floatError
+        floatError,
+        isOpen,
+        openAddressModal,
+        closeAddressModal,
+        isAddressModalOpen,
+        addressIds,
+        fetchBusinessData,
+        openEditModal,
+        openAddModal,
+        address,
+        isEditMode,
+        selectedIndex,
+        modalTitle,
+        isDeleteModalOpen,
+        addressToDelete,
+        openDeleteModal,
+        closeDeleteModal,
+        confirmDelete
     };
   }
 };

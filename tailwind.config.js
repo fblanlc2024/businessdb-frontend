@@ -7,6 +7,7 @@ module.exports = {
   "./src/components/BusinessInfo.vue",
   "./src/components/Forms/BusinessForm.vue",
   "./src/components/Forms/LoginComponent.vue",
+  "./src/components/Forms/Address Components/AddressLookup.vue",
   "./src/components/Forms/Login Form Components/ForgotPasswordForm.vue",
   "./src/components/Forms/Login Form Components/GoogleLogin.vue",
   "./src/components/Forms/Login Form Components/RegularLogin.vue",
@@ -15,6 +16,7 @@ module.exports = {
   "./src/components/Data Display/Info Table Components/MapDisplay.vue",
   "./src/components/Data Display/Info Table Components/PrintReport.vue",
   "./src/components/Data Display/Info Table Components/TableDisplay.vue",
+  "./src/components/Data Display/Info Table Components/EditButton.vue",
   "./public/index.html"],
   theme: {
     extend: {},

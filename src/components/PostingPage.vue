@@ -119,7 +119,7 @@ import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } fro
 import { TrashIcon, XMarkIcon } from '@heroicons/vue/24/outline';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, provide, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import BusinessForm from './Forms/BusinessForm.vue';
@@ -158,6 +158,8 @@ export default {
         const businessCellRefs = ref({});
         const isDeleteModalOpen = ref(false);
         const businessToDelete = ref(null);
+
+        provide('isAdmin', isAdmin);
 
         const redirectToManagement = () => {
             router.push({
