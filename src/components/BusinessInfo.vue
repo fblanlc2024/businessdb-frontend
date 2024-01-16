@@ -13,7 +13,6 @@
         </div>
         <TableDisplay></TableDisplay>
         <PrintReport></PrintReport>
-        <EditBusinessButton></EditBusinessButton>
         <button @click="openAddModal" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add Address</button>
         <AddressModal :isOpen="isAddressModalOpen" @close="closeAddressModal" />
         <DeleteAddressModal :isOpen="isDeleteModalOpen" @close="closeDeleteModal" />
@@ -26,7 +25,6 @@ import { computed, provide, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import AddressModal from './Data Display/Info Table Components/AddressModal.vue';
 import DeleteAddressModal from './Data Display/Info Table Components/DeleteAddressModal.vue';
-import EditBusinessButton from './Data Display/Info Table Components/EditBusinessButton.vue';
 import PrintReport from './Data Display/Info Table Components/PrintReport.vue';
 import TableDisplay from './Data Display/Info Table Components/TableDisplay.vue';
 import DarkModeSwitch from './UI Enhancements/DarkModeSwitch.vue';
@@ -36,15 +34,14 @@ export default {
     PrintReport,
     TableDisplay,
     DarkModeSwitch,
-    EditBusinessButton,
     AddressModal,
     DeleteAddressModal
   },
   setup() {
-    const businessData = ref({});
     const addressData = ref([]);
     const addressIds = ref([]);
     const businessName = ref('');
+    const businessData = ref({});
     const businessId = ref(null);
     const route = useRoute();
     const isDialogOpen = ref(false);
@@ -57,6 +54,7 @@ export default {
     const yearlyRevenueError = ref('');
     const employeeCountError = ref('');
     const websiteTrafficError = ref('');
+    const formErrMsg = ref('');
     const floatError = ref('');
     const isOpen = ref(false);
     const isAddressModalOpen = ref(false);
@@ -248,7 +246,7 @@ export default {
         await axios.delete(`https://localhost:5000/delete_address/${addressToDelete.value}`, {withCredentials: true})
           .then(response => {
             console.log("Address deleted successfully", response);
-            fetchBusinessData(); // Refresh data to reflect deletion
+            fetchBusinessData();
           })
           .catch(error => {
             console.error("Error deleting address", error);
@@ -301,14 +299,15 @@ export default {
     provide('addressToDelete', addressToDelete);
     provide('closeDeleteModal', closeDeleteModal);
     provide('confirmDelete', confirmDelete);
+    provide('formErrMsg', formErrMsg);
 
     return {
         businessData,
-        addressData,
         businessName,
         businessId,
         keys,
         mapping,
+        formErrMsg,
         formattedAvailability,
         formattedResourcesAvailable,
         isDialogOpen,

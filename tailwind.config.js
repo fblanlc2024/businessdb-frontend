@@ -16,7 +16,8 @@ module.exports = {
   "./src/components/Data Display/Info Table Components/MapDisplay.vue",
   "./src/components/Data Display/Info Table Components/PrintReport.vue",
   "./src/components/Data Display/Info Table Components/TableDisplay.vue",
-  "./src/components/Data Display/Info Table Components/EditButton.vue",
+  "./src/components/Data Display/Info Table Components/EditBusinessButton.vue",
+  "./src/components/Data Display/Info Table Components/AddressModal.vue",
   "./public/index.html"],
   theme: {
     extend: {},

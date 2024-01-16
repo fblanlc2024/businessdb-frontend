@@ -62,7 +62,7 @@
     </TransitionRoot>
 
     <TransitionRoot :show="isDeleteModalOpen" as="template">
-      <Dialog as="div" class="fixed inset-0 z-10 overflow-y-auto" @close="closeDeleteModal">
+      <Dialog as="div" class="fixed inset-0 z-10 overflow-y-auto dark:bg-gray-800" @close="closeDeleteModal">
         <div class="flex min-h-screen items-center justify-center p-4 text-center">
           <TransitionChild
             as="template"

@@ -1,5 +1,6 @@
 <template>
   <DarkModeSwitch></DarkModeSwitch>
+  <button @click="backupBusiness()">backup database lmao</button>
   <div class="flex flex-col justify-center items-center h-screen space-y-4">
     <div class="opacity-0 animate-fadeIn animation-delay-500">
       <h1 class="text-7xl font-mono mb-4">Welcome</h1>
@@ -41,6 +42,7 @@
 
 <script>
 import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue';
+import axios from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import LoginComponent from './Forms/LoginComponent.vue';
@@ -71,11 +73,21 @@ export default {
       router.push({ name: 'LoginPage' });
     };
 
+    const backupBusiness = () => {
+      return axios.post(`https://localhost:5000/backup_database`, {withCredentials: true})
+      .then(response => {
+        console.log("business backed up! :100:", response);
+      })
+      .catch(error => {
+        console.error("damn it failed nt", error);
+      });
+    }
     return {
       redirectToLogin,
       isOpen,
       openModal,
-      closeModal
+      closeModal,
+      backupBusiness
     };
   }
 }

@@ -35,29 +35,29 @@
     <!-- Contact Info -->
     <div>
       <label for="contactInfo" class="block text-sm font-medium text-gray-900">Contact Info</label>
-      <input id="contactInfo" v-model="contactInfo" @input="formatPhoneNumber" required placeholder="Enter contact info" :class=inputClass(contactInfoErrMsg) />
+      <input id="contactInfo" v-model="contactInfo" @input="formatPhoneNumber" required placeholder="Enter contact info" :class=inputClass(contactInfoErrMsg) class="mt-2" />
       <p v-if="contactInfoErrMsg" class="text-red-500 text-xs">{{ contactInfoErrMsg }}</p>
     </div>
 
 
       <div>
         <label for="yearlyRevenue" class="block text-sm font-medium text-gray-900">Yearly Revenue</label>
-        <input id="yearlyRevenue" v-model="yearlyRevenue" required placeholder="Enter yearly revenue" :class="inputClass(yearlyRevenueErrMsg)" />
+        <input id="yearlyRevenue" v-model="yearlyRevenue" required placeholder="Enter yearly revenue" :class="inputClass(yearlyRevenueErrMsg)" class="mt-2" />
         <p v-if="yearlyRevenueErrMsg" class="text-red-500 text-xs">{{ yearlyRevenueErrMsg }}</p>
       </div>
       <div>
         <label for="employeeCount" class="block text-sm font-medium text-gray-900">Employee Count</label>
-        <input id="employeeCount" v-model="employeeCount" required placeholder="Enter employee count" :class="inputClass(employeeCountErrMsg)" />
+        <input id="employeeCount" v-model="employeeCount" required placeholder="Enter employee count" :class="inputClass(employeeCountErrMsg)" class="mt-2" />
         <p v-if="employeeCountErrMsg" class="text-red-500 text-xs">{{ employeeCountErrMsg }}</p>
       </div>
       <div>
         <label for="customerSatisfaction" class="block text-sm font-medium text-gray-900">Customer Satisfaction</label>
-        <input id="customerSatisfaction" v-model="customerSatisfaction" required placeholder="Enter customer satisfaction" :class="inputClass(customerSatisfactionErrMsg)" />
+        <input id="customerSatisfaction" v-model="customerSatisfaction" required placeholder="Enter customer satisfaction" :class="inputClass(customerSatisfactionErrMsg)" class="mt-2" />
         <p v-if="customerSatisfactionErrMsg" class="text-red-500 text-xs">{{ customerSatisfactionErrMsg }}</p>
       </div>
       <div>
         <label for="websiteTraffic" class="block text-sm font-medium text-gray-900">Website Traffic</label>
-        <input id="websiteTraffic" v-model="websiteTraffic" required placeholder="Enter website traffic" :class="inputClass(websiteTrafficErrMsg)" />
+        <input id="websiteTraffic" v-model="websiteTraffic" required placeholder="Enter website traffic" :class="inputClass(websiteTrafficErrMsg)" class="mt-2" />
         <p v-if="websiteTrafficErrMsg" class="text-red-500 text-xs">{{ websiteTrafficErrMsg }}</p>
       </div>
       <div>
@@ -300,7 +300,15 @@ import AddressLookup from './Address Components/AddressLookup.vue';
   }
 </script>
 
-<style scoped>
+<style>
+  .dark input {
+    background-color: #1A202C; /* dark-gray-800 */
+    color: #A0AEC0;
+  }
+
+  .dark label {
+    color: #A0AEC0;
+  }
   .suggestion-item {
     padding: 8px 12px;
     cursor: pointer;
@@ -318,6 +326,6 @@ import AddressLookup from './Address Components/AddressLookup.vue';
   }
 
   .selected-text {
-    color: black; /* Apply black color for selected text */
+    color: black;
   }
 </style>

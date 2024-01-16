@@ -13,13 +13,16 @@
                         leave-from="opacity-100 scale-100"
                         leave-to="opacity-0 scale-95"
                     >
-                        <DialogPanel class="w-full md:w-[800px] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all z-50">
+                        <DialogPanel class="w-full md:w-[800px] transform overflow-hiddenformErrMsg rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all z-50">
                             <button @click="closeAddressModal" class="absolute top-4 left-4 bg-transparent text-black hover:text-gray-700 font-semibold text-xl leading-none transition-transform transform hover:scale-110">
                                 <XMarkIcon class="w-6 h-6" />
                             </button>
-                            <h2 class="text-xl font-semibold mb-4">{{ modalTitle }}</h2>
+                            <DialogTitle as="h3" class="text-lg text-center font-medium leading-6 text-gray-900">
+                                {{ modalTitle }}
+                            </DialogTitle>
                             <AddressLookup></AddressLookup>
                             <div class="text-center mt-4">
+                                <p v-if="formErrMsg" class="text-sm text-red-600 mt-1 mb-2">{{ formErrMsg }}</p>
                                 <button @click="handleAddressAction" class="rounded-md bg-indigo-600 px-4 py-2 text-white shadow-sm hover:bg-indigo-500">
                                     {{ isEditMode ? 'Submit Changes' : 'Add Address' }}
                                 </button>
@@ -34,7 +37,7 @@
 
 <script>
 import AddressLookup from '@/components/Forms/Address Components/AddressLookup.vue';
-import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue';
+import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
 import axios from 'axios';
 import { inject, provide, ref } from 'vue';
@@ -47,6 +50,7 @@ import { useStore } from 'vuex';
             TransitionChild,
             Dialog,
             DialogPanel,
+            DialogTitle,
             XMarkIcon
         },
         setup() {
@@ -75,6 +79,7 @@ import { useStore } from 'vuex';
             const isEditMode = inject('isEditMode');
             const addressData = inject('addressData');
             const selectedIndex = inject('selectedIndex');
+            const formErrMsg = inject('formErrMsg');
 
             const inputClass = (errorMsg) => {
                 return [
@@ -98,14 +103,28 @@ import { useStore } from 'vuex';
                                             withCredentials: true 
                                           });
                     console.log(response.data);
-                    // Handle successful response
+                    fetchBusinessData();
+                    closeAddressModal();
                 } catch (error) {
-                    console.error('Error adding address:', error);
-                    // Handle error response
+                    if (error.response && error.response.data && error.response.data.error) {
+                        const errorMsg = error.response.data.error.replace(/['"]+/g, '').replace(/&quot;/g, '');
+                        if (errorMsg.includes('zipcode')) {
+                            zipcodeErrMsg.value = errorMsg;
+                        }
+                        else {
+                            formErrMsg.value = errorMsg;
+                        }
+                    } else {
+                        formErrMsg.value = 'Network error. Please try again later.';
+                    }
+                    console.error('Error adding business:', error);
                 }
             };
 
             const editAddress = async () => {
+                formErrMsg.value = '';
+                zipcodeErrMsg.value = '';
+
                 console.log("calling editAddress method");
                 const addressId = addressIds.value[selectedIndex.value];
                 const editedAddressData = address.value;
@@ -116,9 +135,20 @@ import { useStore } from 'vuex';
                     console.log(response.data);
                     console.log("Address updated successfully");
                     fetchBusinessData();
+                    closeAddressModal();
                 } catch (error) {
-                    console.error('Error updating address:', error);
-                    console.log("Error updating address");
+                    if (error.response && error.response.data && error.response.data.error) {
+                        const errorMsg = error.response.data.error.replace(/['"]+/g, '').replace(/&quot;/g, '');
+                        if (errorMsg.includes('zipcode')) {
+                            zipcodeErrMsg.value = errorMsg;
+                        }
+                        else {
+                            formErrMsg.value = errorMsg;
+                        }
+                    } else {
+                        formErrMsg.value = 'Network error. Please try again later.';
+                    }
+                    console.error('Error adding business:', error);
                 }
             };
 
@@ -157,7 +187,8 @@ import { useStore } from 'vuex';
                 editAddress,
                 addressData,
                 selectedIndex,
-                handleAddressAction
+                handleAddressAction,
+                formErrMsg
             };
         }
     }

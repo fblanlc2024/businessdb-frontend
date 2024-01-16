@@ -84,26 +84,24 @@
         </div>
     </div>
 
+    <EditBusinessButton></EditBusinessButton>
+
     <div v-if="formattedAddresses.length > 0" class="max-w-4xl mx-auto overflow-hidden bg-white shadow-lg rounded-lg dark:bg-gray-800 mt-8 mb-8">
         <h3 class="px-6 py-4 text-lg font-medium text-gray-900 dark:text-white">Addresses</h3>
         <div class="data-display-for-print divide-y divide-gray-200 dark:divide-gray-700">
-            <div v-for="(address, index) in formattedAddresses" :key="index" class="grid grid-cols-2">
+            <div v-for="(address, index) in formattedAddresses" :key="index" class="grid grid-cols-2 items-center">
                 <div class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white whitespace-normal border-r border-gray-200 dark:border-gray-700">
                     Address {{ index + 1 }}
                 </div>
                 <div 
-                    :class="['px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-normal', 'cursor-pointer hover:underline', 'border-gray-200 dark:border-gray-700']"
+                    :class="['px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-normal flex justify-between items-center', 'cursor-pointer hover:underline', 'border-gray-200 dark:border-gray-700', 'group']"
                     @click="openModal(address)"
                 >
                     {{ address }}
-                </div>
-                <div class="flex space-x-2">
-                    <button @click="openEditModal(index, addressData[index])" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                        Edit
-                    </button>
-                    <button @click="openDeleteModal(index)" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                        Delete
-                    </button>
+                    <span class="hidden group-hover:flex space-x-2">
+                        <PencilIcon class="h-6 w-6 text-blue-500 hover:text-blue-700 cursor-pointer -my-2" @click.stop="openEditModal(index, addressData[index])"/>
+                        <TrashIcon class="h-6 w-6 text-red-500 hover:text-red-700 cursor-pointer -my-2" @click.stop="openDeleteModal(index)"/>
+                    </span>
                 </div>
             </div>
         </div>
@@ -112,12 +110,17 @@
 </template>
 
 <script>
+import { PencilIcon, TrashIcon } from '@heroicons/vue/24/outline';
 import { inject, onMounted } from 'vue';
 import MapDisplay from '../Info Table Components/MapDisplay.vue';
+import EditBusinessButton from './EditBusinessButton.vue';
 
 export default {
     components: {
-        MapDisplay
+        MapDisplay,
+        PencilIcon,
+        TrashIcon,
+        EditBusinessButton
     },
   setup() {
     const businessData = inject('businessData');
