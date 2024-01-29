@@ -41,7 +41,7 @@
                                 type="text"
                                 v-model="editedData['customer_satisfaction']"
                             />
-                            <p v-if="floatError" class="text-red-500 text-xs mt-3 -mb-3">{{ floatError }}</p>
+                            <p v-if="floatError" class="text-red-500 text-xs mt-3 -my-3">{{ floatError }}</p>
                         </div>
                         <div v-else-if="item.value === 'yearly_revenue'">
                             <input 
@@ -50,7 +50,7 @@
                                 type="text" 
                                 v-model="editedData['yearly_revenue']" 
                             />
-                            <p v-if="yearlyRevenueError" class="text-red-500 text-xs mt-3 -mb-3">{{ yearlyRevenueError }}</p>
+                            <p v-if="yearlyRevenueError" class="text-red-500 text-xs mt-3 -my-3">{{ yearlyRevenueError }}</p>
                         </div>
 
                         <div v-else-if="item.value === 'employee_count'">
@@ -60,17 +60,17 @@
                                 type="text" 
                                 v-model="editedData['employee_count']" 
                             />
-                            <p v-if="employeeCountError" class="text-red-500 text-xs mt-3 -mb-3">{{ employeeCountError }}</p>
+                            <p v-if="employeeCountError" class="text-red-500 text-xs mt-3 -my-3">{{ employeeCountError }}</p>
                         </div>
 
                         <div v-else-if="item.value === 'website_traffic'">
                             <input 
-                                :class="['text-sm', 'dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full']"
+                                :class="['-my-10 text-sm', 'dark:bg-gray-700 dark:text-white dark:border-white border-1 w-full']"
                                 :style="{borderColor: websiteTrafficError ? 'red' : ''}"
                                 type="text" 
                                 v-model="editedData['website_traffic']" 
                             />
-                            <p v-if="websiteTrafficError" class="text-red-500 text-xs mt-1 -mb-3">{{ websiteTrafficError }}</p>
+                            <p v-if="websiteTrafficError" class="text-red-500 text-xs mt-1 -my-3">{{ websiteTrafficError }}</p>
                         </div>
                         <input 
                             v-else 

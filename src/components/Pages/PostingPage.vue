@@ -6,6 +6,7 @@
       <div class="flex-1 flex justify-end">
         <DarkModeSwitch class="non-printing"></DarkModeSwitch>
       </div>
+      <button @click="redirectToChatBot()">redirects to chat bot component (test)</button>
     </div>
 
     <div class="box-content h-1/4 w-1/2 p-4 border border-gray-300 ml-8 rounded-lg">
@@ -17,9 +18,10 @@
     <div class="grid grid-cols-4 gap-2 mt-4 px-8 pb-5">
         <!-- Add Button -->
         <button v-if="isAdmin" @click="openModal" class="cell-button px-2 py-1 border rounded-md hover:bg-gray-200 dark:border-gray-500 dark:hover:bg-gray-500 cursor-pointer">
-            <div class="circle-icon border-black dark:border-gray-200">
-                <span class="plus-icon dark:text-gray-200">+</span>
-            </div>
+          <div class="flex justify-center items-center w-10 h-10 border-2 border-dashed border-black dark:border-gray-200 rounded-full bg-transparent">
+            <span class="text-2xl text-black dark:text-gray-200">+</span>
+          </div>
+
         </button>
 
         <!-- Business Items -->
@@ -62,7 +64,7 @@
     </TransitionRoot>
 
     <TransitionRoot :show="isDeleteModalOpen" as="template">
-      <Dialog as="div" class="fixed inset-0 z-10 overflow-y-auto dark:bg-gray-800" @close="closeDeleteModal">
+      <Dialog as="div" class="fixed inset-0 z-10 overflow-y-auto" @close="closeDeleteModal">
         <div class="flex min-h-screen items-center justify-center p-4 text-center">
           <TransitionChild
             as="template"
@@ -122,11 +124,11 @@ import Cookies from 'js-cookie';
 import { computed, nextTick, onMounted, onUnmounted, provide, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
-import BusinessForm from './Forms/BusinessForm.vue';
-import DarkModeSwitch from './UI Enhancements/DarkModeSwitch.vue';
-import { checkAdminStatus } from './utils/adminCheck';
-import api from './utils/api.js';
-import EventBus from './utils/eventBus';
+import BusinessForm from '../Forms/BusinessForm.vue';
+import DarkModeSwitch from '../UI Enhancements/DarkModeSwitch.vue';
+import { checkAdminStatus } from '../utils/adminCheck';
+import api from '../utils/api.js';
+import EventBus from '../utils/eventBus';
 
 export default {
     name: 'PostingPage',
@@ -326,6 +328,12 @@ export default {
             });
         };
 
+        const redirectToChatBot = () => {
+          router.push({
+            name: 'ChatBot'
+          })
+        }
+
         const handleBusinessAdded = (business) => {
           console.log('New business added:', business);
           businesses.value.push(business);
@@ -378,7 +386,8 @@ export default {
             deleteBusiness,
             isDeleteModalOpen,
             confirmDelete,
-            closeDeleteModal
+            closeDeleteModal,
+            redirectToChatBot
         };
     }
 };
@@ -389,22 +398,6 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.circle-icon {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 40px;
-  height: 40px;
-  border: 2px dashed #000; /* Standard border color */
-  border-radius: 50%;
-  background-color: transparent;
-}
-
-.plus-icon {
-  font-size: 24px;
-  color: #000;
 }
 
 /* Modal Background */

@@ -1,9 +1,10 @@
+import accounts from '@/store/accounts.js';
+import "preline/preline";
 import { createApp } from 'vue';
 import { createStore } from 'vuex';
 import App from './App.vue';
-import router from './router';
 import './index.css';
-import accounts from '@/store/accounts.js';
+import router from './router';
 
 const store = createStore({
   modules: {

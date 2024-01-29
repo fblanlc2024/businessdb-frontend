@@ -1,10 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'class',
-  content: ["./src/components/EntryPage.vue",
-  "./src/components/ManageAccount.vue",
-  "./src/components/PostingPage.vue",
-  "./src/components/BusinessInfo.vue",
+  content: ["./src/components/Pages/EntryPage.vue",
+  "./src/components/Pages/ManageAccount.vue",
+  "./src/components/Pages/PostingPage.vue",
+  "./src/components/Pages/BusinessInfo.vue",
+  "./src/components/Pages/ChatBotComponent.vue",
   "./src/components/Forms/BusinessForm.vue",
   "./src/components/Forms/LoginComponent.vue",
   "./src/components/Forms/Address Components/AddressLookup.vue",
@@ -18,12 +19,14 @@ module.exports = {
   "./src/components/Data Display/Info Table Components/TableDisplay.vue",
   "./src/components/Data Display/Info Table Components/EditBusinessButton.vue",
   "./src/components/Data Display/Info Table Components/AddressModal.vue",
-  "./public/index.html"],
+  "./public/index.html",
+  './node_modules/preline/preline.js'],
   theme: {
-    extend: {},
+    extend: {}
   },
   plugins: [
     require('@tailwindcss/forms'),
+    require('preline/plugin')
   ],
   corePlugins: {
     preflight: true

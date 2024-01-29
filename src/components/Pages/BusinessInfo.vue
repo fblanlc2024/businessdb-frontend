@@ -23,11 +23,11 @@
 import axios from 'axios';
 import { computed, provide, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import AddressModal from './Data Display/Info Table Components/AddressModal.vue';
-import DeleteAddressModal from './Data Display/Info Table Components/DeleteAddressModal.vue';
-import PrintReport from './Data Display/Info Table Components/PrintReport.vue';
-import TableDisplay from './Data Display/Info Table Components/TableDisplay.vue';
-import DarkModeSwitch from './UI Enhancements/DarkModeSwitch.vue';
+import AddressModal from '../Data Display/Info Table Components/AddressModal.vue';
+import DeleteAddressModal from '../Data Display/Info Table Components/DeleteAddressModal.vue';
+import PrintReport from '../Data Display/Info Table Components/PrintReport.vue';
+import TableDisplay from '../Data Display/Info Table Components/TableDisplay.vue';
+import DarkModeSwitch from '../UI Enhancements/DarkModeSwitch.vue';
 
 export default {
   components: {

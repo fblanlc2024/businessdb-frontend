@@ -302,7 +302,7 @@ import AddressLookup from './Address Components/AddressLookup.vue';
 
 <style>
   .dark input {
-    background-color: #1A202C; /* dark-gray-800 */
+    background-color: #1A202C;
     color: #A0AEC0;
   }
 

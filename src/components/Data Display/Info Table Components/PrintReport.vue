@@ -8,19 +8,27 @@
 
 <script>
 import axios from 'axios';
-import { inject } from 'vue';
+import { inject, ref } from 'vue';
 
 export default {
     setup() {
         const isAdmin = inject('isAdmin');
         const businessData = inject('businessData');
         const formattedAddresses = inject('formattedAddresses');
+        const formattedResourcesAvailable = inject('formattedResourcesAvailable');
+        const formattedContactInfo = inject('formattedContactInfo');
+        const modifiedBusinessData = ref([]);
 
         const generatePDF = () => {
             const isAdminStatus = isAdmin.value ? 'true' : 'false';
+            modifiedBusinessData.value = JSON.parse(JSON.stringify(businessData.value));
+
+            modifiedBusinessData.value.resources_available = formattedResourcesAvailable.value;
+            modifiedBusinessData.value.contact_info = formattedContactInfo.value;
+
             const payload = {
                 isAdmin: isAdminStatus,
-                businessData: businessData.value,
+                businessData: modifiedBusinessData.value,
                 formattedAddresses: formattedAddresses.value
             };
 
@@ -43,7 +51,13 @@ export default {
         };
 
         return {
-            generatePDF
+            generatePDF,
+            isAdmin,
+            businessData,
+            formattedAddresses,
+            formattedResourcesAvailable,
+            formattedContactInfo,
+            modifiedBusinessData
         }
     }
 }

@@ -1,9 +1,10 @@
 import Cookies from 'js-cookie';
 import { createRouter, createWebHistory } from 'vue-router';
-import BusinessInfo from '../components/BusinessInfo.vue';
-import EntryPage from '../components/EntryPage.vue';
-import ManageAccount from '../components/ManageAccount.vue';
-import PostingPage from '../components/PostingPage.vue';
+import BusinessInfo from '../components/Pages/BusinessInfo.vue';
+import Chatbot from '../components/Pages/ChatBotComponent.vue';
+import EntryPage from '../components/Pages/EntryPage.vue';
+import ManageAccount from '../components/Pages/ManageAccount.vue';
+import PostingPage from '../components/Pages/PostingPage.vue';
 import EventBus from '../components/utils/eventBus';
 import { store } from '../main';
 
@@ -11,7 +12,8 @@ const routes = [
   { path: '/', name: 'EntryPage', component: EntryPage },
   { path: '/posting', name: 'PostingPage', component: PostingPage, meta: { requiresAuth: true } },
   { path: '/manageAccount', name: 'ManageAccount', component: ManageAccount, meta: { requiresAuth: true } },
-  { path: '/businessinfo', name: 'BusinessInfo', component: BusinessInfo, meta: { requiresAuth: true } }
+  { path: '/businessinfo', name: 'BusinessInfo', component: BusinessInfo, meta: { requiresAuth: true } },
+  { path: '/chatbot', name: 'ChatBot', component: Chatbot, meta: { requiresAuth: true } }
 ];
 
 const router = createRouter({
@@ -40,6 +42,16 @@ router.beforeEach((to, from, next) => {
   }
 
   next();
+});
+
+router.afterEach((to, from, failure) => {
+  if (!failure) {
+    setTimeout(() => {
+      if (window.HSStaticMethods) {
+        window.HSStaticMethods.autoInit();
+      }
+    }, 100);
+  }
 });
 
 EventBus.on('token-refresh-failed', () => {
