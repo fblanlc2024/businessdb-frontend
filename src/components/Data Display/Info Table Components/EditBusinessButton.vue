@@ -1,8 +1,8 @@
 <template>
-    <div v-if="isAdmin" class="flex justify-end p-4">
-        <button @click="toggleEdit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">
+    <div v-if="isAdmin" class="flex justify-end w-full">
+        <div @click="toggleEdit" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-2 text-center w-full">
             {{ isEditing ? 'Save' : 'Edit' }}
-        </button>
+        </div>
     </div>
 </template>
 

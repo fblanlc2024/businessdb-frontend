@@ -38,3 +38,60 @@
       display: block;
     }
   }
+
+  .dark input,
+  .dark select {
+    background-color: #1A202C;
+    color: #A0AEC0;
+    border-color: #2D3748;
+  }
+  
+  .dark label {
+    color: #A0AEC0;
+  }
+  
+  .dark .suggestion-item,
+  .dark select option {
+    background-color: #1A202C;
+    color: #A0AEC0;
+  }
+  
+  .dark .suggestion-item:hover,
+  .dark select option:hover {
+    background-color: #2D3748;
+    color: #A0AEC0;
+  }
+
+  .suggestion-item {
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+  
+  .suggestion-item:hover {
+    background-color: #f0f0f0;
+  }
+
+  input {
+    color: #000000;
+  }
+
+  input::placeholder {
+    color: #aaa;
+  }
+
+  .dark input {
+    background-color: #1A202C;
+    color: #FFFFFF;
+  }
+
+  .dark label {
+    color: #A0AEC0;
+  }
+
+  .selected-text {
+    color: black;
+  }
+
+  .dark .selected-text {
+    color: white;
+  }

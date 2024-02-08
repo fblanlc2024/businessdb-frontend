@@ -23,6 +23,7 @@
                         </template>
                     </template>
                     <template v-else>
+                        <!-- Input Field Mode -->
                         <div v-if="item.value === 'has_available_resources' && isEditing" class="-my-2">
                             <select v-model="editedData[item.value]" class="custom-select">
                                 <option value="true">Yes</option>
@@ -81,10 +82,9 @@
                     </template>
                 </div>
             </div>
+            <EditBusinessButton></EditBusinessButton>
         </div>
     </div>
-
-    <EditBusinessButton></EditBusinessButton>
 
     <div v-if="formattedAddresses.length > 0" class="max-w-4xl mx-auto overflow-hidden bg-white shadow-lg rounded-lg dark:bg-gray-800 mt-8 mb-8">
         <h3 class="px-6 py-4 text-lg font-medium text-gray-900 dark:text-white">Addresses</h3>
@@ -104,6 +104,7 @@
                     </span>
                 </div>
             </div>
+            <div @click="openAddModal()" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-2 text-center w-full">Add Address</div>
         </div>
     </div>
     <MapDisplay />
@@ -154,6 +155,7 @@ export default {
     const fetchBusinessData = inject('fetchBusinessData');
     const openEditModal = inject('openEditModal');
     const openDeleteModal = inject('openDeleteModal');
+    const openAddModal = inject('openAddModal');
 
     onMounted(async () => {
         businessName.value = route.query.businessName;
@@ -198,7 +200,8 @@ export default {
         inputClass,
         addressIds,
         openEditModal,
-        openDeleteModal
+        openDeleteModal,
+        openAddModal
     };
   }
 };

@@ -1,5 +1,5 @@
 <template>
-  <form v-if="!showSignup && !showForgotPassword" class="space-y-6" @submit.prevent="handleLogin">
+  <form v-if="showLogin" class="space-y-6" @submit.prevent="handleLogin">
     <!-- Username -->
     <div>
         <label for="loginUsername" class="block text-sm font-medium leading-6 text-gray-900">Username</label>
@@ -20,7 +20,7 @@
         <div class="flex items-center justify-between">
         <label for="loginPassword" class="block text-sm font-medium leading-6 text-gray-900">Password</label>
         <div class="text-sm">
-            <a href="#" @click.prevent="showForgotPassword = true" class="font-semibold text-indigo-600 hover:text-indigo-500">Forgot password?</a>
+            <a href="#" @click.prevent="showForgotPassword = true, showLogin = false, showSignup = false" class="font-semibold text-indigo-600 hover:text-indigo-500">Forgot password?</a>
         </div>
         </div>
         <div class="mt-2">
@@ -34,13 +34,17 @@
         <p v-if="loginErrMsg" class="text-sm text-red-600 mt-1">{{ loginErrMsg }}</p>
     </div>
 
-    <!-- Login Button -->
     <div>
       <button type="submit" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Sign in</button>
+      <div class="relative my-8">
+      <div class="absolute inset-0 flex items-center" aria-hidden="true">
+        <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
+      </div>
+      <div class="relative flex justify-center">
+        <span class="bg-white dark:bg-gray-800 px-2 text-sm text-gray-500 dark:text-gray-400">Or</span>
+      </div>
     </div>
-      <p class="or font-mono-bold mt-6"><span>Or</span></p>
-    <div>
-      <GoogleLogin></GoogleLogin>
+      <GoogleLogin class="-mt-4"></GoogleLogin>
     </div>
   </form>
 </template>
@@ -67,6 +71,7 @@ export default {
     const remainingMinutes = ref(15);
     const showForgotPassword = inject('showForgotPassword');
     const showSignup = inject('showSignup');
+    const showLogin = inject('showLogin');
 
     const handleLogin = () => {
       loginUser(loginUsername.value, loginPassword.value)
@@ -151,7 +156,8 @@ export default {
       remainingAttempts,
       remainingMinutes,
       showForgotPassword,
-      showSignup
+      showSignup,
+      showLogin
     };
   }
 };
@@ -169,5 +175,9 @@ margin: 25px 0;
 background: #fff;
 padding: 0 10px;
 color: gray;
+}
+
+.dark .or span {
+  background: #1f2937;
 }
 </style>

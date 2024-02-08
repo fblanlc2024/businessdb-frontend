@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-6">
-    <h2 class="text-2xl font-bold text-gray-900 text-center mt-5">Add New Business Client</h2>
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-300 text-center mt-5">Add New Business Client</h2>
 
     <!-- Business Name -->
     <div>
@@ -241,8 +241,7 @@ import AddressLookup from './Address Components/AddressLookup.vue';
 
       const formatPhoneNumber = () => {
         let input = contactInfo.value;
-        input = input.replace(/\D/g, ''); // Remove all non-numeric characters
-        // Format as per desired pattern (e.g., (123) 456-7890)
+        input = input.replace(/\D/g, '');
         if (input.length <= 3) {
           input = `(${input}`;
         } else if (input.length <= 6) {
@@ -301,31 +300,4 @@ import AddressLookup from './Address Components/AddressLookup.vue';
 </script>
 
 <style>
-  .dark input {
-    background-color: #1A202C;
-    color: #A0AEC0;
-  }
-
-  .dark label {
-    color: #A0AEC0;
-  }
-  .suggestion-item {
-    padding: 8px 12px;
-    cursor: pointer;
-  }
-  
-  .suggestion-item:hover {
-    background-color: #f0f0f0;
-  }
-
-  input {
-    color: #000000;
-  }
-  input::placeholder {
-    color: #aaa;
-  }
-
-  .selected-text {
-    color: black;
-  }
 </style>

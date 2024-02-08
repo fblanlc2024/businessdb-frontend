@@ -1,25 +1,47 @@
 <template>
-  <DarkModeSwitch></DarkModeSwitch>
-  <button @click="backupBusiness()">backup database lmao</button>
-  <div class="flex flex-col justify-center items-center h-screen space-y-4">
+  <header class="sticky top-0 inset-x-0 -mt-12 flex flex-wrap sm:justify-start sm:flex-nowrap z-40 bg-white text-sm dark:bg-gray-800">
+    <nav class="max-w-full w-full mx-auto px-4 sm:flex sm:items-center sm:justify-between" aria-label="Global">
+      <div class="flex items-center justify-between">
+        <a class="flex-none" href="#">
+          <img class="w-10 h-auto rounded-md" src="@/assets/sakura_logo.png" alt="Logo">
+        </a>
+        <div class="sm:hidden">
+          <button type="button" class="hs-collapse-toggle p-2 inline-flex justify-center items-center gap-x-2 rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-transparent dark:border-gray-700 dark:text-white dark:hover:bg-white/10 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600" data-hs-collapse="#navbar-image-1" aria-controls="navbar-image-1" aria-label="Toggle navigation">
+            <svg class="hs-collapse-open:hidden flex-shrink-0 w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
+            <svg class="hs-collapse-open:block hidden flex-shrink-0 w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="navbar-image-1" class="hs-collapse hidden overflow-hidden transition-all duration-300 basis-full grow sm:block">
+        <div data-hs-scrollspy="#scrollspy-1" class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-end sm:mt-0 sm:ps-5">
+          <a :class="{ 'text-indigo-600': currentSection === 'home' }" @click.prevent="navigateToSection('home')">Home</a>
+          <a :class="{ 'text-indigo-600': currentSection === 'about' }" @click.prevent="navigateToSection('about')">About</a>
+          <a :class="{ 'text-indigo-600': currentSection === 'work' }" @click.prevent="navigateToSection('work')">Work</a>
+          <a :class="{ 'text-indigo-600': currentSection === 'blog' }" @click.prevent="navigateToSection('blog')">Blog</a>
+          <button
+            @click="openModal"
+            class="mt-0.5 flex justify-center items-center rounded-lg px-3.5 py-0.5 overflow-hidden relative group cursor-pointer border-2 font-medium border-indigo-600 text-indigo-600"
+          >
+            <span class="absolute w-64 h-0 transition-all duration-300 origin-center rotate-45 -translate-x-20 bg-indigo-600 top-1/2 group-hover:h-64 group-hover:-translate-y-32 ease"></span>
+            <span class="relative transition duration-300 group-hover:text-white ease">Log In</span>
+          </button>
+          <DarkModeSwitch class="mt-11"></DarkModeSwitch>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <div id="home" class="section flex flex-col justify-center items-center relative h-screen space-y-4">
     <div class="opacity-0 animate-fadeIn animation-delay-500">
       <h1 class="text-7xl font-mono mb-4">Welcome</h1>
     </div>
 
     <div class="opacity-0 animate-fadeIn animation-delay-1000">
-      <p class="text-lg font-mono mb-4">Please log in to view your school's business clients.</p>
+      <p class="text-lg font-mono mb-4">The database of the future.</p>
     </div>
-    
-    <button
-      @click="openModal"
-      class="opacity-0 animate-fadeIn animation-delay-1500 mt-8 flex justify-center items-center rounded-lg px-3.5 py-2 m-1 overflow-hidden relative group cursor-pointer border-2 font-medium border-indigo-600 text-indigo-600"
-    >
-      <span class="absolute w-64 h-0 transition-all duration-300 origin-center rotate-45 -translate-x-20 bg-indigo-600 top-1/2 group-hover:h-64 group-hover:-translate-y-32 ease"></span>
-      <span class="relative transition duration-300 group-hover:text-white ease">Log In</span>
-    </button>
 
     <TransitionRoot :show="isOpen" as="template">
-      <Dialog as="div" @close="closeModal" class="fixed inset-0 overflow-y-auto">
+      <Dialog as="div" @close="closeModal" class="fixed inset-0 overflow-y-auto z-50">
         <div class="flex min-h-full items-center justify-center p-4 text-center">
           <TransitionChild
             as="template"
@@ -30,7 +52,7 @@
             leave-from="opacity-100 scale-100"
             leave-to="opacity-0 scale-95"
           >
-            <DialogPanel class="w-full md:w-[800px] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all z-40">
+            <DialogPanel class="w-full md:w-[800px] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all z-50 dark:bg-gray-800">
               <LoginComponent />
             </DialogPanel>
           </TransitionChild>
@@ -38,12 +60,26 @@
       </Dialog>
     </TransitionRoot>
   </div>
+  <div id="about" class="mt-12 section relative h-screen overflow-hidden">
+    <h3 class="text-lg font-semibold">About Us</h3>
+    <p>[32] Sed ut perspiciatis, unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa, quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt, explicabo. Nemo enim ipsam voluptatem, quia voluptas sit, aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos, qui ratione voluptatem sequi nesciunt, neque porro quisquam est, qui dolorem ipsum, quia dolor sit amet consectetur adipisci[ng] velit, sed quia non numquam [do] eius modi tempora inci[di]dunt, ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum[d] exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? [D]Quis autem vel eum i[r]ure reprehenderit, qui in ea voluptate velit esse, quam nihil molestiae consequatur, vel illum, qui dolorem eum fugiat, quo voluptas nulla pariatur?
+
+[33] At vero eos et accusamus et iusto odio dignissimos ducimus, qui blanditiis praesentium voluptatum deleniti atque corrupti, quos dolores et quas molestias excepturi sint, obcaecati cupiditate non provident, similique sunt in culpa, qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem reru[d]um facilis est e[r]t expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio, cumque nihil impedit, quo minus id, quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellend[a]us. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet, ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.</p>
+  </div>
+  
+  <div id="work" class="section relative h-screen">
+    <h3> Work Section </h3>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  </div>
+  
+  <div id="blog" class="section relative h-screen">
+    <h3> Blog Section </h3>
+  </div>
 </template>
 
 <script>
 import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue';
-import axios from 'axios';
-import { ref } from 'vue';
+import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import LoginComponent from '../Forms/LoginComponent.vue';
 import DarkModeSwitch from '../UI Enhancements/DarkModeSwitch.vue';
@@ -60,6 +96,8 @@ export default {
   setup() {
     const router = useRouter();
     const isOpen = ref(false);
+    const currentSection = ref(null);
+    const sectionsRefs = ref([]);
 
     const openModal = () => {
       isOpen.value = true;
@@ -73,21 +111,60 @@ export default {
       router.push({ name: 'LoginPage' });
     };
 
-    const backupBusiness = () => {
-      return axios.post(`https://localhost:5000/backup_database`, {withCredentials: true})
-      .then(response => {
-        console.log("business backed up! :100:", response);
-      })
-      .catch(error => {
-        console.error("damn it failed nt", error);
+    const onScroll = () => {
+      let foundSection = null;
+      sectionsRefs.value.forEach(section => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+          foundSection = section.id;
+        }
       });
-    }
+      currentSection.value = foundSection;
+    };
+
+    const adjustScroll = () => {
+        const headerHeight = document.querySelector('.sticky').offsetHeight;
+        window.scrollBy(0, -headerHeight); // Adjust scroll position
+    };
+
+    const navigateToSection = (sectionId) => {
+      nextTick(() => {
+        const section = document.getElementById(sectionId);
+        if (section) {
+          const headerHeight = document.querySelector('.sticky') ? document.querySelector('.sticky').offsetHeight : 0;
+          const sectionTop = window.scrollY + section.getBoundingClientRect().top - headerHeight;
+          
+          window.scrollTo({
+            top: sectionTop,
+            behavior: "smooth"
+          });
+
+          currentSection.value = sectionId;
+        }
+      });
+    };
+
+
+    onMounted(() => {
+      sectionsRefs.value = document.querySelectorAll('.section');
+      window.addEventListener('scroll', onScroll);
+      onScroll();
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener('scroll', onScroll);
+    });
+    
     return {
       redirectToLogin,
       isOpen,
       openModal,
       closeModal,
-      backupBusiness
+      onScroll,
+      currentSection,
+      sectionsRefs,
+      adjustScroll,
+      navigateToSection
     };
   }
 }

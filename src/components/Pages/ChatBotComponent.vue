@@ -1,10 +1,10 @@
 <template>
   <div class="flex">
     <div id="main-content">
-      <input v-model="userMessage" @keyup.enter="sendMessage" placeholder="Type your message here">
+      <!-- <input v-model="userMessage" @keyup.enter="sendMessage" placeholder="Type your message here">
       <button @click="sendMessage(userMessage)">Send</button>
       <button @click="startRecording">start recording</button>
-      <button @click="stopRecording">stop recording</button>
+      <button @click="stopRecording">stop recording</button> -->
       <!-- <input v-model="assistantInput" @keyup.enter="sendToAssistant" placeholder="Type your message here to send to assistant">
       <button @click="sendToAssistant">Send to assistant</button> -->
       <!-- <div>
@@ -49,10 +49,10 @@
       </button>
     </div>
 
-    <nav class="hs-accordion-group w-full px-2 flex flex-col flex-wrap" data-hs-accordion-always-open>
-      <div id="users-accordion" class="hs-accordion-content w-full overflow-hidden transition-[height] duration-300">
-        <ul class="hs-accordion-group pt-2" data-hs-accordion-always-open>
-          <li class="hs-accordion" id="users-accordion-sub-1">
+    <nav class="w-full px-2 flex flex-col flex-wrap">
+      <div class="w-full overflow-hidden transition-[height] duration-300">
+        <ul>
+          <li>
             <div
               v-for="thread in threads"
               :key="thread.thread_id"
@@ -252,7 +252,6 @@ import { useStore } from 'vuex';
         assistantInput.value = '';
       };
 
-
       const newSelection = () => {
         selectedMessages.value = null;
         selectedThread.value = null;
@@ -265,24 +264,49 @@ import { useStore } from 'vuex';
       });
 
       socket.on('assistant-response', async (data) => {
-        if (data.content && data.thread_id) {
-          // Find index of the thread that needs updating
-          const threadIndex = threads.value.findIndex(t => !t.thread_id);
+        if (data.content) {
+          // Check if this is an update for a temporary thread or a new thread creation
+          if (data.thread_id && data.thread_id.startsWith('temp_')) {
+            // Find the temporary thread in your threads array
+            let tempThreadIndex = threads.value.findIndex(t => t.thread_id === data.thread_id);
+            
+            if (tempThreadIndex !== -1) {
+              // If found, update the temporary thread with the new data
+              threads.value[tempThreadIndex].title = data.title || "New Chat"; // Use the title from data if available
+              threads.value[tempThreadIndex].thread_id = data.thread_id; // Update with the new thread_id from the backend
+              threads.value[tempThreadIndex].messages.push({ role: 'assistant', text: data.content });
+            }
+          } else if (data.thread_id) {
+            // Handling for non-temporary thread updates or new threads
+            let threadIndex = threads.value.findIndex(t => t.thread_id === data.thread_id);
 
-          if (threadIndex !== -1) {
-            // Update the thread with actual data from the backend
-            threads.value[threadIndex] = {
-              title: data.title, // Title from backend
-              thread_id: data.thread_id, // Actual thread ID from backend
-              messages: [...threads.value[threadIndex].messages, { role: 'assistant', text: data.content }]
-            };
-            selectedThread.value = data.thread_id;
+            if (threadIndex !== -1) {
+              // Existing thread found, just push the new message
+              threads.value[threadIndex].messages.push({ role: 'assistant', text: data.content });
+            } else {
+              // This is genuinely a new thread (not replacing a temp one)
+              const newThread = {
+                title: data.title || "New Chat", // Use the title from data if available
+                thread_id: data.thread_id,
+                messages: [{ role: 'assistant', text: data.content }]
+              };
+              threads.value.push(newThread);
+              threadIndex = threads.value.length - 1;
+            }
           }
 
-          await fetchUserThreads();
-          await selectThread(data.thread_id);
+          // Update the selected thread if it matches the thread_id in the response
+          if (selectedThread.value === data.thread_id || !selectedThread.value) {
+            selectedThread.value = data.thread_id;
+            selectedMessages.value = threads.value.find(t => t.thread_id === data.thread_id).messages;
+          }
+
+          // Optionally, refetch threads to ensure UI is up-to-date
+          await fetchUserThreads(); // Consider if necessary, as this may not be needed if you're already updating the state
+          await selectThread(data.thread_id); // May not be needed if already updating the state above
         }
       });
+
   
       const sendMessage = (userMessage) => {
         if(userMessage != null)
@@ -333,7 +357,7 @@ import { useStore } from 'vuex';
 
       const fetchUserThreads = async () => {
         try {
-          const response = await axios.get(`https://localhost:5000/get-user-threads/${userId.value}`);
+          const response = await axios.get(`https://localhost:5000/get-user-threads/${userId.value}`, {withCredentials: true});
           threads.value = response.data;
           console.log("the threads value: ", threads.value)
         } catch (error) {

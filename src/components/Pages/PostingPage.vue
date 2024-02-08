@@ -1,30 +1,22 @@
 <template>
+  <NavbarComponent />
   <div>
-    <div class="flex justify-between items-center mb-4 py-5 pb-5 border-b-2 border-gray-400 text-center dark:border-gray-700">
-      <div class="flex-1"></div>
-      <h1 class="text-4xl font-bold flex-shrink" @click="redirectToManagement">Welcome, {{ username }}, {{isAdmin}}!</h1>
-      <div class="flex-1 flex justify-end">
-        <DarkModeSwitch class="non-printing"></DarkModeSwitch>
-      </div>
-      <button @click="redirectToChatBot()">redirects to chat bot component (test)</button>
-    </div>
-
     <div class="box-content h-1/4 w-1/2 p-4 border border-gray-300 ml-8 rounded-lg">
       <div class="text-2xl pl-2 font-bold mb-4">Client Lookup</div>
       <div class="pl-2 mb-4 whitespace-pre-line">On this page, enter your client name in the search box below. Then, click your client name to view all of the policies that are available under your company name.</div>
       <input v-model="textInput" type="text" placeholder="Enter client name:" class="w-1/2 ml-2 px-2 py-2 border border-gray-300 dark:bg-gray-800 dark:border-gray-500 rounded-md shadow-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
     </div>
 
-    <div class="grid grid-cols-4 gap-2 mt-4 px-8 pb-5">
-        <!-- Add Button -->
-        <button v-if="isAdmin" @click="openModal" class="cell-button px-2 py-1 border rounded-md hover:bg-gray-200 dark:border-gray-500 dark:hover:bg-gray-500 cursor-pointer">
-          <div class="flex justify-center items-center w-10 h-10 border-2 border-dashed border-black dark:border-gray-200 rounded-full bg-transparent">
-            <span class="text-2xl text-black dark:text-gray-200">+</span>
-          </div>
-
+    <div class="hs-tooltip inline-block [--placement:bottom] grid grid-cols-4 gap-2 mt-4 px-8 pb-5">
+        <button v-if="isAdmin" @click="openModal" class="hs-tooltip-toggle cell-button px-2 py-1 border-2 border-dashed border-gray-200 dark:border-gray-200 rounded-md hover:bg-gray-200 dark:border-gray-200 dark:hover:bg-gray-500 text-bold cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <span class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible opacity-0 transition-opacity inline-block absolute invisible z-10 py-1 px-2 bg-gray-900 text-xs font-medium text-white rounded shadow-sm dark:bg-slate-700" role="tooltip">
+            Add business
+          </span>
         </button>
 
-        <!-- Business Items -->
         <div 
             v-for="business in sortedAndFilteredBusinesses" 
             :key="business.business_id"
@@ -33,14 +25,14 @@
             @click.stop="redirectToBusinessInfo(business)">
             {{ business.business_name }}
             <span class="absolute top-0 right-0 p-1 hidden group-hover:block">
-                <TrashIcon class="h-6 w-6" @click.stop="deleteBusiness(business)"/>
+                <TrashIcon class="h-6 w-6 dark:text-gray-200" @click.stop="deleteBusiness(business)"/>
             </span>
         </div>
     </div>
 
 
     <TransitionRoot :show="isOpen" as="template">
-      <Dialog as="div" class="fixed inset-0 overflow-y-auto">
+      <Dialog as="div" class="fixed inset-0 overflow-y-auto z-50">
         <div class="flex min-h-full items-center justify-center p-4 text-center">
           <div class="fixed inset-0 bg-black bg-opacity-50" aria-hidden="true"></div>
           <TransitionChild
@@ -52,9 +44,9 @@
             leave-from="opacity-100 scale-100"
             leave-to="opacity-0 scale-95"
           >
-            <DialogPanel class="w-full md:w-[800px] transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all z-50">
+            <DialogPanel class="w-full md:w-[800px] transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all z-50">
               <button @click="closeModal" class="absolute top-4 left-4 bg-transparent text-black hover:text-gray-700 font-semibold text-xl leading-none transition-transform transform hover:scale-110">
-              <XMarkIcon class="w-6 h-6" />
+              <XMarkIcon class="w-6 h-6 dark:text-gray-200" />
               </button>
               <BusinessForm></BusinessForm>
             </DialogPanel>
@@ -64,7 +56,7 @@
     </TransitionRoot>
 
     <TransitionRoot :show="isDeleteModalOpen" as="template">
-      <Dialog as="div" class="fixed inset-0 z-10 overflow-y-auto" @close="closeDeleteModal">
+      <Dialog as="div" class="fixed inset-0 z-50 overflow-y-auto" @close="closeDeleteModal">
         <div class="flex min-h-screen items-center justify-center p-4 text-center">
           <TransitionChild
             as="template"
@@ -87,18 +79,18 @@
             leave-from="opacity-100 scale-100"
             leave-to="opacity-0 scale-95"
           >
-            <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-              <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900">
+            <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
+              <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-200">
                 Confirm Deletion
               </DialogTitle>
               <div class="mt-2">
-                <p class="text-sm text-gray-500">
+                <p class="text-sm text-gray-500 dark:text-gray-200">
                   Are you sure you want to delete this business? This action cannot be undone.
                 </p>
               </div>
 
               <div class="mt-4 flex justify-end gap-3">
-                <button type="button" class="inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" @click="closeDeleteModal">
+                <button type="button" class="inline-flex justify-center rounded-md border border-transparent bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:border-white dark:text-gray-200 dark:hover:bg-gray-600 px-4 py-2 text-sm font-medium text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" @click="closeDeleteModal">
                   Cancel
                 </button>
                 <button type="button" class="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2" @click="confirmDelete">
@@ -111,9 +103,7 @@
       </Dialog>
     </TransitionRoot>
   </div>
-  <div>
-    <button @click="logOut">Log out</button>
-  </div>
+  <ChatBotComponent />
 </template>
 
 <script>
@@ -125,24 +115,26 @@ import { computed, nextTick, onMounted, onUnmounted, provide, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import BusinessForm from '../Forms/BusinessForm.vue';
-import DarkModeSwitch from '../UI Enhancements/DarkModeSwitch.vue';
+import NavbarComponent from '../UI Enhancements/NavbarComponent.vue';
 import { checkAdminStatus } from '../utils/adminCheck';
 import api from '../utils/api.js';
 import EventBus from '../utils/eventBus';
+import ChatBotComponent from './ChatBotComponent.vue';
 
 export default {
     name: 'PostingPage',
     components: {
-        DarkModeSwitch,
-        TransitionRoot,
-        TransitionChild,
-        Dialog,
-        DialogPanel,
-        DialogTitle,
-        BusinessForm,
-        TrashIcon,
-        XMarkIcon
-    },
+    TransitionRoot,
+    TransitionChild,
+    Dialog,
+    DialogPanel,
+    DialogTitle,
+    BusinessForm,
+    TrashIcon,
+    XMarkIcon,
+    NavbarComponent,
+    ChatBotComponent
+},
     setup() {
         const store = useStore();
         const router = useRouter();
@@ -267,6 +259,8 @@ export default {
               console.log("EventBus 'close-modal' event received");
               closeModal();
           });
+          
+          EventBus.emit('setActiveLink', 'Lookup');
 
           // Fetch current user data
           let userDataFetched = false;

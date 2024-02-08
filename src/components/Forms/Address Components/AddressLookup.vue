@@ -14,7 +14,7 @@
 
     <!-- Address Fields -->
     <div>
-      <label class="block text-sm font-medium text-gray-900">Address</label>
+      <label class="block text-sm font-medium text-gray-900 pt-2">Address</label>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px;">
         <div>
           <input id="addressLine1" v-model="address.line1" class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Address Line 1" />

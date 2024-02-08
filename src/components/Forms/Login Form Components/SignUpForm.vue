@@ -49,6 +49,8 @@ export default {
     const confirmPassword = ref('');
     const signupErrMsg = ref('');
     const showSignup = inject('showSignup');
+    const showLogin = inject('showLogin');
+    const showForgotPassword = inject('showForgotPassword');
 
     const handleSignup = () => {
       if (signupPassword.value !== confirmPassword.value) {
@@ -63,6 +65,9 @@ export default {
       .then(response => {
           if (response.data.message === 'Account created successfully') {
               console.log(response.data.message);
+              showLogin.value = true;
+              showSignup.value = false
+              showForgotPassword.value = false
               signupErrMsg.value = '';
           } else {
             signupErrMsg.value = 'Signup failed. Please try again.';
@@ -81,7 +86,9 @@ export default {
       confirmPassword,
       handleSignup,
       signupErrMsg,
-      showSignup
+      showSignup,
+      showLogin,
+      showForgotPassword
     };
   }
 };

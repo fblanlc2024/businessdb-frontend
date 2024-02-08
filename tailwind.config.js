@@ -19,6 +19,7 @@ module.exports = {
   "./src/components/Data Display/Info Table Components/TableDisplay.vue",
   "./src/components/Data Display/Info Table Components/EditBusinessButton.vue",
   "./src/components/Data Display/Info Table Components/AddressModal.vue",
+  "./src/components/Data Display/Info Table Components/DeleteAddressModal.vue",
   "./public/index.html",
   './node_modules/preline/preline.js'],
   theme: {

@@ -56,11 +56,13 @@ export default {
     const confirmedNewPassword = ref('');
 
     const showForgotPassword = inject('showForgotPassword');
+    const showLogin = inject('showLogin');
+    const showSignup = inject('showSignup');
 
     const handleForgotPassword = () => {
       if (loginPassword.value !== confirmedNewPassword.value) {
         console.error('Passwords do not match.');
-        forgotPasswordErrMsg.value = 'One or more fields is invalid. Please try again.'
+        forgotPasswordErrMsg.value = 'One or more fields is invalid. Please try again.';
         return;
       }
 
@@ -72,6 +74,8 @@ export default {
         if (response.data.message === 'Password updated successfully') {
           console.log(response.data.message);
           showForgotPassword.value = false;
+          showLogin.value = true;
+          showSignup.value = false;
           forgotPasswordErrMsg.value = '';
         } else {
           forgotPasswordErrMsg.value = 'One or more fields is invalid. Please try again.';
@@ -85,13 +89,16 @@ export default {
     };
 
 
+
     return {
       loginUsername,
       loginPassword,
       handleForgotPassword,
       forgotPasswordErrMsg,
       confirmedNewPassword,
-      showForgotPassword
+      showForgotPassword,
+      showLogin,
+      showSignup
     };
   }
 };

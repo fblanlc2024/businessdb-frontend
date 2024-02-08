@@ -1,7 +1,7 @@
 <template>
     <div>
         <TransitionRoot :show="isAddressModalOpen" as="template">
-            <Dialog as="div" class="fixed inset-0 overflow-y-auto">
+            <Dialog as="div" class="fixed inset-0 overflow-y-auto z-50">
                 <div class="flex min-h-full items-center justify-center p-4 text-center">
                     <div class="fixed inset-0 bg-black bg-opacity-50" aria-hidden="true"></div>
                     <TransitionChild
@@ -13,11 +13,11 @@
                         leave-from="opacity-100 scale-100"
                         leave-to="opacity-0 scale-95"
                     >
-                        <DialogPanel class="w-full md:w-[800px] transform overflow-hiddenformErrMsg rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all z-50">
+                        <DialogPanel class="w-full md:w-[800px] transform overflow-hiddenformErrMsg rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all dark:bg-gray-800 z-50">
                             <button @click="closeAddressModal" class="absolute top-4 left-4 bg-transparent text-black hover:text-gray-700 font-semibold text-xl leading-none transition-transform transform hover:scale-110">
-                                <XMarkIcon class="w-6 h-6" />
+                                <XMarkIcon class="w-6 h-6 dark:text-gray-200" />
                             </button>
-                            <DialogTitle as="h3" class="text-lg text-center font-medium leading-6 text-gray-900">
+                            <DialogTitle as="h3" class="text-lg text-center font-medium leading-6 text-gray-900 dark:text-gray-200">
                                 {{ modalTitle }}
                             </DialogTitle>
                             <AddressLookup></AddressLookup>

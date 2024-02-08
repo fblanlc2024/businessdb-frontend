@@ -1,6 +1,6 @@
 <template>
     <TransitionRoot as="template" :show="isDialogOpen">
-        <Dialog as="div" class="fixed inset-0 z-10 overflow-y-auto" @close="closeModal">
+        <Dialog as="div" class="fixed inset-0 z-10 overflow-y-auto z-50" @close="closeModal">
             <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
                 <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
                     <DialogOverlay class="fixed inset-0 transition-opacity bg-black bg-opacity-50" />
@@ -8,7 +8,7 @@
 
                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
                 <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
-                    <DialogPanel :class="['inline-block align-bottom bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:align-middle', isExpanded ? 'fixed inset-0 z-50 w-full h-full max-w-none p-0' : 'sm:my-8 sm:max-w-lg sm:w-full sm:p-6']">
+                    <DialogPanel :class="['inline-block align-bottom bg-white rounded-lg dark:bg-gray-800 overflow-hidden shadow-xl transform transition-all sm:align-middle', isExpanded ? 'fixed inset-0 z-50 w-full h-full max-w-none p-0' : 'sm:my-8 sm:max-w-lg sm:w-full sm:p-6']">
                         <div class="absolute top-0 right-0 p-6 cursor-pointer hover-effect icon-container" @click="toggleModalSize">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
@@ -81,6 +81,10 @@ export default {
     padding: 5px;
 }
 
+.dark .icon-container {
+    background-color: #1f2937;
+}
+
 .icon-container:hover {
     transform: scale(1.1);
     transition: transform 0.3s ease-in-out;
@@ -95,5 +99,9 @@ export default {
 
 svg {
     color: black;
+}
+
+.dark svg {
+    color: #e5e7eb;
 }
 </style>

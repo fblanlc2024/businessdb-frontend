@@ -1,19 +1,13 @@
 <template>
+    <NavbarComponent />
     <div class="dark:bg-gray-800 dark:text-gray-400 min-h-screen">
-        <!-- Header and Title -->
-        <div
-            class="non-printing flex justify-between items-center mb-4 py-5 pb-5 border-b-2 border-gray-400 text-center dark:border-gray-700">
-            <div class="flex-1"></div>
-            <h1 class="non-printing text-4xl font-bold flex-shrink">Business Info</h1>
-            <DarkModeSwitch class="non-printing"></DarkModeSwitch>
-        </div>
-
         <div class="text-2xl font-bold mb-4 pt-6 text-center">
             <h2>Information for {{ businessName }}</h2>
         </div>
         <TableDisplay></TableDisplay>
         <PrintReport></PrintReport>
-        <button @click="openAddModal" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add Address</button>
+        <div class="col-start-2 text-center">
+  </div>
         <AddressModal :isOpen="isAddressModalOpen" @close="closeAddressModal" />
         <DeleteAddressModal :isOpen="isDeleteModalOpen" @close="closeDeleteModal" />
     </div>
@@ -27,16 +21,16 @@ import AddressModal from '../Data Display/Info Table Components/AddressModal.vue
 import DeleteAddressModal from '../Data Display/Info Table Components/DeleteAddressModal.vue';
 import PrintReport from '../Data Display/Info Table Components/PrintReport.vue';
 import TableDisplay from '../Data Display/Info Table Components/TableDisplay.vue';
-import DarkModeSwitch from '../UI Enhancements/DarkModeSwitch.vue';
+import NavbarComponent from '../UI Enhancements/NavbarComponent.vue';
 
 export default {
   components: {
     PrintReport,
     TableDisplay,
-    DarkModeSwitch,
     AddressModal,
-    DeleteAddressModal
-  },
+    DeleteAddressModal,
+    NavbarComponent
+},
   setup() {
     const addressData = ref([]);
     const addressIds = ref([]);

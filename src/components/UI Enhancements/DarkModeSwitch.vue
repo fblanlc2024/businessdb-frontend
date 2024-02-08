@@ -70,7 +70,10 @@ body {
 .switch {
     display: inline-block;
     position: relative;
+    transform: scale(0.5); /* Scale the switch to 50% of its original size */
+    transform-origin: top left; /* Adjust as needed to align the switch */
 }
+
 
 .switch__input {
     clip: rect(1px, 1px, 1px, 1px);
