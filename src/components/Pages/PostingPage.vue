@@ -1,8 +1,9 @@
 <template>
   <NavbarComponent />
+  <ChatBotComponent />
   <div>
     <div class="box-content h-1/4 w-1/2 p-4 border border-gray-300 ml-8 rounded-lg">
-      <div class="text-2xl pl-2 font-bold mb-4">Client Lookup</div>
+      <div class="text-2xl pl-2 font-bold mb-4">Search Box</div>
       <div class="pl-2 mb-4 whitespace-pre-line">On this page, enter your client name in the search box below. Then, click your client name to view all of the policies that are available under your company name.</div>
       <input v-model="textInput" type="text" placeholder="Enter client name:" class="w-1/2 ml-2 px-2 py-2 border border-gray-300 dark:bg-gray-800 dark:border-gray-500 rounded-md shadow-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
     </div>
@@ -29,7 +30,6 @@
             </span>
         </div>
     </div>
-
 
     <TransitionRoot :show="isOpen" as="template">
       <Dialog as="div" class="fixed inset-0 overflow-y-auto z-50">
@@ -103,7 +103,6 @@
       </Dialog>
     </TransitionRoot>
   </div>
-  <ChatBotComponent />
 </template>
 
 <script>
@@ -114,12 +113,12 @@ import Cookies from 'js-cookie';
 import { computed, nextTick, onMounted, onUnmounted, provide, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+import ChatBotComponent from '../Chatbot/ChatBotComponent.vue';
 import BusinessForm from '../Forms/BusinessForm.vue';
 import NavbarComponent from '../UI Enhancements/NavbarComponent.vue';
 import { checkAdminStatus } from '../utils/adminCheck';
 import api from '../utils/api.js';
 import EventBus from '../utils/eventBus';
-import ChatBotComponent from './ChatBotComponent.vue';
 
 export default {
     name: 'PostingPage',

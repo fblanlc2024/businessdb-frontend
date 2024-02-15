@@ -95,3 +95,7 @@
   .dark .selected-text {
     color: white;
   }
+
+  .dark textarea {
+    color: #FFFFFF;
+  }

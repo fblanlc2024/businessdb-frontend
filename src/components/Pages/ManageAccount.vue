@@ -1,6 +1,7 @@
 <template>
     <NavbarComponent />
-    <div class="mx-4 mt-16 min-h-screen max-w-screen-xl sm:mx-8 xl:mx-auto">
+    <ChatBotComponent />
+    <div class="mx-4min-h-screen max-w-screen-xl sm:mx-8 xl:mx-auto">
         <div class="col-span-8 overflow-hidden rounded-xl sm:bg-gray-50 sm:px-8 sm:shadow dark:bg-gray-900">
           <div class="pt-4">
             <h1 class="py-2 text-2xl font-semibold">Account settings</h1>
@@ -85,16 +86,18 @@
 
 <script>
 import axios from 'axios';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+import ChatBotComponent from '../Chatbot/ChatBotComponent.vue';
 import NavbarComponent from '../UI Enhancements/NavbarComponent.vue';
 import EventBus from '../utils/eventBus';
 
 export default {
     name: 'ManageAccount',
     components: {
-    NavbarComponent
+    NavbarComponent,
+    ChatBotComponent
 },
     setup() {
       const store = useStore();
@@ -211,11 +214,6 @@ export default {
 
     onMounted(() => {
       EventBus.emit('setActiveLink', 'Settings');
-      document.body.classList.add('overflow-hidden');
-    });
-
-    onUnmounted(() => {
-      document.body.classList.remove('overflow-hidden');
     });
 
       return {

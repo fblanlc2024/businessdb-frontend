@@ -1,5 +1,6 @@
 <template>
     <NavbarComponent />
+    <ChatBotComponent />
     <div class="dark:bg-gray-800 dark:text-gray-400 min-h-screen">
         <div class="text-2xl font-bold mb-4 pt-6 text-center">
             <h2>Information for {{ businessName }}</h2>
@@ -17,6 +18,7 @@
 import axios from 'axios';
 import { computed, provide, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import ChatBotComponent from '../Chatbot/ChatBotComponent.vue';
 import AddressModal from '../Data Display/Info Table Components/AddressModal.vue';
 import DeleteAddressModal from '../Data Display/Info Table Components/DeleteAddressModal.vue';
 import PrintReport from '../Data Display/Info Table Components/PrintReport.vue';
@@ -29,7 +31,8 @@ export default {
     TableDisplay,
     AddressModal,
     DeleteAddressModal,
-    NavbarComponent
+    NavbarComponent,
+    ChatBotComponent
 },
   setup() {
     const addressData = ref([]);

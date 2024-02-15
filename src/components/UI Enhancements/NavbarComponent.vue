@@ -27,13 +27,13 @@
             @click.prevent="setActiveLink('Settings'), redirectToPage('ManageAccount')"
           >Settings</a>
 
-          <h1 v-if="headerText" class="absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:translate-y-0 top-1/2 sm:top-auto w-auto text-2xl font-bold mt-0.25">
+          <h1 v-if="headerText" class="absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:translate-y-0 top-1/2 sm:top-auto w-auto text-2xl font-bold -mt-0.25">
             {{ headerText }}
           </h1>
           <button @click="logOut()" class="ml-1 inline-flex items-center px-4 py-0.5 mt-0.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
             Log out
           </button>
-          <DarkModeSwitch class="mt-10"></DarkModeSwitch>
+          <DarkModeSwitch class="mt-8"></DarkModeSwitch>
         </div>
       </div>
     </nav>

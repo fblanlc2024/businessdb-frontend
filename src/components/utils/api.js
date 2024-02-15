@@ -93,7 +93,7 @@ instance.interceptors.response.use(
         originalRequest.headers['Authorization'] = 'Bearer ' + token;
 
         // Check for admin status check request specifically
-        if (originalRequest.url.includes('/admin_status_check')) {
+        if (originalRequest.url.includes('/admin_status_check' || '/get-user-threads')) {
           console.log('Retrying /admin_status_check after token refresh');
         } else {
           console.log('Retrying request to', originalRequest.url, 'after token refresh');
