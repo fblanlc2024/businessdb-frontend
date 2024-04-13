@@ -11,7 +11,7 @@ To get started, first install all the required dependencies:
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### Compiles and hot-reloads for development (frontend only)
 ```
 npm run serve
 ```
