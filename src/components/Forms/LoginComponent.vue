@@ -1,3 +1,5 @@
+<!-- Switcher for overall login - navigates between login, signup, and password recovery screens -->
+
 <template>
   <div class="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
       <h2 v-if="showLogin" class="mt-10 text-center text-2xl font-mono-bold leading-9 tracking-tight text-gray-900 dark:text-gray-300">Sign in to your account</h2>

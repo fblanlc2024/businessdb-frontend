@@ -3,7 +3,7 @@ module.exports = {
   darkMode: 'class',
   content: ["./src/components/Pages/EntryPage.vue",
   "./src/components/Pages/ManageAccount.vue",
-  "./src/components/Pages/PostingPage.vue",
+  "./src/components/Pages/ClientLookup.vue",
   "./src/components/Pages/BusinessInfo.vue",
   "./src/components/Forms/BusinessForm.vue",
   "./src/components/Forms/LoginComponent.vue",

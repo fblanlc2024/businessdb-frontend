@@ -1,3 +1,5 @@
+<!-- Dark mode switch with local storage saving as well as system preference. -->
+
 <template>
     <div class="flex-1 flex justify-end">
         <div class="switch mr-5">
@@ -27,7 +29,6 @@ export default {
         } else {
         document.documentElement.classList.remove('dark');
         }
-        // Save to LocalStorage
         window.localStorage.setItem('isDarkMode', newValue.toString());
     });
 
@@ -36,12 +37,10 @@ export default {
         if (savedDarkMode !== null) {
             isDarkMode.value = savedDarkMode === 'true';
         } else {
-            // If no saved setting, use system preference
             const prefersDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             isDarkMode.value = prefersDarkMode;
         }
 
-        // Apply the dark mode class based on isDarkMode value
         if (isDarkMode.value) {
             document.documentElement.classList.add('dark');
         } else {
@@ -70,8 +69,8 @@ body {
 .switch {
     display: inline-block;
     position: relative;
-    transform: scale(0.5); /* Scale the switch to 50% of its original size */
-    transform-origin: top left; /* Adjust as needed to align the switch */
+    transform: scale(0.5);
+    transform-origin: top left;
 }
 
 

@@ -2,7 +2,7 @@
     const generatePDF = () => {
         const businessNameEncoded = encodeURIComponent(businessName.value);
 
-        axios.get(`https://localhost:5000/print_business_info?name=${businessNameEncoded}`, {
+        axios.get(`${process.env.VUE_APP_BACKEND_URL}/print_business_info?name=${businessNameEncoded}`, {
             responseType: 'blob',
         })
         .then(response => {

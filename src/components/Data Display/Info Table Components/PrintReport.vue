@@ -1,3 +1,5 @@
+<!-- Component housing a button to print the report and pull all of the respective data. -->
+
 <template>
     <div class="non-printing text-center mb-4">
         <button @click="generatePDF" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
@@ -19,6 +21,7 @@ export default {
         const formattedContactInfo = inject('formattedContactInfo');
         const modifiedBusinessData = ref([]);
 
+        // Creates new blob to contain backend PDF bytes and opens a new window to build the PDF
         const generatePDF = () => {
             const isAdminStatus = isAdmin.value ? 'true' : 'false';
             modifiedBusinessData.value = JSON.parse(JSON.stringify(businessData.value));
@@ -34,7 +37,7 @@ export default {
 
             const newTab = window.open('', '_blank');
 
-            axios.post('https://localhost:5000/print_business_info', payload, { responseType: 'blob' })
+            axios.post(`${process.env.VUE_APP_BACKEND_URL}/print_business_info`, payload, { responseType: 'blob' })
             .then(response => {
                 const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
                 

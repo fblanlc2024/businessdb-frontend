@@ -7,8 +7,8 @@ module.exports = defineConfig({
     server: {
       type: 'https',
       options: {
-        key: fs.readFileSync('D:\\Projects\\Python\\math-quiz\\key.pem'),
-        cert: fs.readFileSync('D:\\Projects\\Python\\math-quiz\\cert.pem'),
+        key: fs.readFileSync('D:\\Projects\\Python\\fbla-proj-backend\\key.pem'),
+        cert: fs.readFileSync('D:\\Projects\\Python\\fbla-proj-backend\\cert.pem'),
       }
     }
   }

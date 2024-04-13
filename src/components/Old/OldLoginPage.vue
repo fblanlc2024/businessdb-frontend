@@ -29,10 +29,10 @@
   </template>
   
   <script>
-  import { ref } from 'vue';
   import axios from 'axios';
-  import { useRouter } from 'vue-router';
-  import { useStore } from 'vuex';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 
   export default {
     name: 'LoginForm',
@@ -53,7 +53,7 @@
 
       var redirectToPageTwo = () => {
           router.push({
-            name: 'PostingPage'
+            name: 'ClientLookup'
           });
       };
 
@@ -72,7 +72,6 @@
           loginUser(loginUsername.value, loginPassword.value)
           .then(response => {
               if (response.data.message === 'Login successful') {
-                  // Assuming the backend sends user details in the response
                   store.dispatch('accounts/setUserCredentials', {
                       id: response.data.user._id,
                       username: response.data.user.username

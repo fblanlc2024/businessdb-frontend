@@ -1,5 +1,6 @@
+<!-- Address Lookup utilizing Foursquare's Business Address Autocomplete dataset -->
+
 <template>
-    <!-- Address Lookup -->
     <div>
       <label for="addressLookup" class="block text-sm font-medium text-gray-900">Address Lookup</label>
       <input id="addressLookup" v-model="addressLookupQuery" placeholder="Start typing an address..." class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
@@ -12,7 +13,6 @@
       </div>
     </div>
 
-    <!-- Address Fields -->
     <div>
       <label class="block text-sm font-medium text-gray-900 pt-2">Address</label>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px;">
@@ -68,7 +68,7 @@ import { inject, watch } from 'vue';
       watch(addressLookupQuery, async (newQuery) => {
         if (newQuery && newQuery.length > 2) {
           try {
-            const response = await axios.get(`https://localhost:5000/autocomplete?query=${newQuery}`);
+            const response = await axios.get(`${process.env.VUE_APP_BACKEND_URL}/autocomplete?query=${newQuery}`);
             addressSuggestions.value = response.data.results;
           } catch (error) {
             console.error('Error fetching address suggestions:', error);
@@ -81,7 +81,7 @@ import { inject, watch } from 'vue';
       const fetchAddressSuggestions = async () => {
         if (addressLookupQuery.value.length > 2) {
           try {
-            const response = await axios.get(`https://localhost:5000/autocomplete?query=${addressLookupQuery.value}`);
+            const response = await axios.get(`${process.env.VUE_APP_BACKEND_URL}/autocomplete?query=${addressLookupQuery.value}`);
             addressSuggestions.value = response.data;
           } catch (error) {
             console.error('Error fetching address suggestions:', error);

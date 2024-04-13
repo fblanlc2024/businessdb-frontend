@@ -1,3 +1,5 @@
+<!-- Displays and formats business information into a table, utilizing the table display and print report to do so.  -->
+
 <template>
     <NavbarComponent />
     <ChatBotComponent />
@@ -146,7 +148,7 @@ export default {
 
     const fetchBusinessData = async () => {
         try {
-            const response = await axios.get(`https://localhost:5000/api/business_info?name=${encodeURIComponent(businessName.value)}`, {withCredentials: true});
+            const response = await axios.get(`${process.env.VUE_APP_BACKEND_URL}/api/business_info?name=${encodeURIComponent(businessName.value)}`, {withCredentials: true});
             console.log(response.data);
 
             const responseData = response.data;
@@ -240,7 +242,7 @@ export default {
 
     const confirmDelete = async () => {
       if (addressToDelete.value != null) {
-        await axios.delete(`https://localhost:5000/delete_address/${addressToDelete.value}`, {withCredentials: true})
+        await axios.delete(`${process.env.VUE_APP_BACKEND_URL}/delete_address/${addressToDelete.value}`, {withCredentials: true})
           .then(response => {
             console.log("Address deleted successfully", response);
             fetchBusinessData();

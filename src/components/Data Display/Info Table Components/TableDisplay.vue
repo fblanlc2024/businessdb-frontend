@@ -1,3 +1,5 @@
+<!-- Main business information display -->
+
 <template>
     <div class="max-w-4xl mx-auto overflow-hidden bg-white shadow-lg rounded-lg dark:bg-gray-800 mt-8 mb-8">
         <div class="data-display-for-print divide-y divide-gray-200 dark:divide-gray-700">
@@ -7,7 +9,6 @@
                 </div>
                 <div class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-normal border-gray-200 dark:border-gray-700">
                     <template v-if="!isEditing || item.label === 'Business ID'">
-                        <!-- Special case handling -->
                         <template v-if="item.value === 'resources_available'">
                             {{ formattedResourcesAvailable }}
                         </template>
@@ -18,12 +19,10 @@
                             {{ formattedContactInfo }}
                         </template>
                         <template v-else>
-                            <!-- Display value for regular fields -->
                             {{ businessData[item.value] || 'N/A' }}
                         </template>
                     </template>
                     <template v-else>
-                        <!-- Input Field Mode -->
                         <div v-if="item.value === 'has_available_resources' && isEditing" class="-my-2">
                             <select v-model="editedData[item.value]" class="custom-select">
                                 <option value="true">Yes</option>
@@ -98,13 +97,13 @@
                     @click="openModal(address)"
                 >
                     {{ address }}
-                    <span class="hidden group-hover:flex space-x-2">
+                    <span v-if="isAdmin" class="hidden group-hover:flex space-x-2">
                         <PencilIcon class="h-6 w-6 text-blue-500 hover:text-blue-700 cursor-pointer -my-2" @click.stop="openEditModal(index, addressData[index])"/>
                         <TrashIcon class="h-6 w-6 text-red-500 hover:text-red-700 cursor-pointer -my-2" @click.stop="openDeleteModal(index)"/>
                     </span>
                 </div>
             </div>
-            <div @click="openAddModal()" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-2 text-center w-full">Add Address</div>
+            <div v-if="isAdmin" @click="openAddModal()" class="dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white hover:bg-gray-100 font-bold py-3 px-2 text-center w-full">Add Address</div>
         </div>
     </div>
     <MapDisplay />
@@ -208,41 +207,39 @@ export default {
 </script>
 
 <style>
-/* Dark mode styling */
 .dark .custom-select {
-  background-color: #374151; /* Dark mode background color */
-  color: white; /* Text color for dark mode */
+  background-color: #374151;
+  color: white;
   border: 1px solid #ddd;
   border-radius: 0.25rem;
-  padding: 0.25rem 0.75rem; /* Adjust padding to match the input height */
-  width: 100%; /* Full width */
-  -webkit-appearance: none; /* Removes default styling on iOS */
-  -moz-appearance: none; /* Removes default styling in Firefox */
-  appearance: none; /* Removes default styling */
+  padding: 0.25rem 0.75rem;
+  width: 100%;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 .dark .custom-select option {
-  background-color: #374151; /* Same as select for consistency */
-  color: white; /* Same as select for readability */
-  padding: 0.5rem 1rem; /* Same padding as the select, but may not be applied in all browsers */
+  background-color: #374151;
+  color: white;
+  padding: 0.5rem 1rem;
 }
 
-/* Light mode styling */
 .custom-select {
-  background-color: white; /* Light mode background color */
-  color: #374151; /* Text color for light mode */
+  background-color: white;
+  color: #374151;
   border: 1px solid #374151;
   border-radius: 0.25rem;
-  padding: 0.25rem 0.75rem; /* Adjust padding to match the input height */
+  padding: 0.25rem 0.75rem;
   width: 100%; /* Full width */
-  -webkit-appearance: none; /* Removes default styling on iOS */
-  -moz-appearance: none; /* Removes default styling in Firefox */
-  appearance: none; /* Removes default styling */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 .custom-select option {
-  background-color: white; /* Same as select for consistency */
-  color: #374151; /* Same as select for readability */
-  padding: 0.5rem 1rem; /* Same padding as the select, but may not be applied in all browsers */
+  background-color: white;
+  color: #374151;
+  padding: 0.5rem 1rem;
 }
 </style>

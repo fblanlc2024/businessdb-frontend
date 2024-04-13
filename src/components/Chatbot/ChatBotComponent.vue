@@ -1,3 +1,5 @@
+<!-- The entirety of the OpenAI sidebar. -->
+
 <template>
   <button @click="toggleElements" class="fixed bottom-4 right-4 z-50 flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
@@ -8,7 +10,6 @@
   <div id="chat" class="flex flex-col">
     <div id="docs-sidebar" class="hs-overlay transition-all duration-300 transform fixed top-0 end-0 bottom-0 z-50 w-full md:w-1/5 bg-white border-l border-gray-400 dark:bg-gray-800 pt-7 pb-10 md:overflow-hidden overflow-y-auto">
       <div class="px-4 flex items-center">
-        <!-- Close button with @click directive for toggleElements method -->
         <button @click="toggleElements" class="dark:text-white -mt-2.5" aria-label="Close sidebar">
           <XMarkIcon class="w-6 h-6" />
         </button>
@@ -26,7 +27,6 @@
       </div>
       <nav class="w-full flex flex-col overflow-hidden" style="height: calc(100vh - 125px);">
         <div class="px-2 overflow-y-auto">
-          <!-- Loop through threads for selection -->
           <ul v-if="titlesShown" class="space-y-1">
             <li v-for="thread in threads" :key="thread.thread_id">
               <button @click="selectThread(thread.thread_id)" type="button" class="w-full text-start flex items-center gap-x-4 py-2 px-4 text-sm text-slate-700 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-900 dark:text-slate-400 dark:hover:text-slate-300">
@@ -35,10 +35,9 @@
               </button>
             </li>
           </ul>
-          <!-- Display selected thread messages -->
           <div v-if="showSplash" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
             <div class="text-center">
-              <ChatBubbleLeftIcon class="mx-auto w-24 h-24 text-gray-500 dark:text-gray-200" />
+              <img class="mx-auto w-24 h-24 rounded-full" src="@/assets/cropped_final_logo.png" alt="Logo">
               <p class="text-lg text-gray-700 mt-4 dark:text-gray-200">How can I assist you today?</p>
             </div>
           </div>
@@ -105,14 +104,13 @@ import { useStore } from 'vuex';
     MicrophoneIcon,
     StopCircleIcon,
     DocumentIcon,
-    XCircleIcon,
-    // ChatBubbleLeftRightIcon
+    XCircleIcon
 },
     setup() {
       const store = useStore();
       const router = useRouter();
       const userMessage = ref('');
-      const socket = io('https://localhost:5000'); 
+      const socket = io(`${process.env.VUE_APP_BACKEND_URL}`); 
       const aiResponse = ref('');
       const audioChunks = ref([]);
       const mediaRecorder = ref(null);
@@ -134,6 +132,7 @@ import { useStore } from 'vuex';
       const titlesShown = ref(false);
       const userId = computed(() => store.getters['accounts/getUserId']);
 
+      // Toggles the sidebar element and its sliding animation.
       const toggleElements = () => {
         const sidebarElement = document.getElementById('docs-sidebar');
         if (!sidebarElement) {
@@ -145,6 +144,7 @@ import { useStore } from 'vuex';
         isSidebarOpen.value = !isSidebarOpen.value;
       };
 
+      // Clicking the history button to load all of the titles and logs of user chats.
       const loadTitlesOnly = () => {
         selectedMessages.value = null;
         showSplash.value = false;
@@ -154,11 +154,14 @@ import { useStore } from 'vuex';
         titlesShown.value = true;
       };
 
+      // Fetches user threads immediately on page load.
       onMounted(() => {
         fetchUserThreads();
       });
 
+      // Sends the assistant request via SocketIO to the backend for Assistant API processing. This function is only for text and files.
       const sendToAssistant = async () => {
+        showSplash.value = false;
         if (!assistantInput.value) {
           return;
         }
@@ -171,21 +174,22 @@ import { useStore } from 'vuex';
           textAreaElement.style.height = '40px';
         }
 
-        // If no thread is selected, create a temporary one
         if (!tempThreadId) {
           tempThreadId = 'temp_' + Date.now();
           threads.value.push({
             title: 'New chat',
-            thread_id: tempThreadId, // Temporary ID
+            thread_id: tempThreadId,
             messages: [{ role: 'user', text: assistantInput.value }]
           });
           selectedThread.value = tempThreadId;
           selectedMessages.value = [{ role: 'user', text: assistantInput.value }];
         } else {
-          // Add the user's message to the selected thread
           const threadIndex = threads.value.findIndex(t => t.thread_id === tempThreadId);
-          if (threadIndex !== -1) {
+          if (threadIndex !== -1 && threads.value[threadIndex].messages) {
+            console.log("pushign new message");
             threads.value[threadIndex].messages.push({ role: 'user', text: assistantInput.value });
+          } else {
+            console.error("Thread or its messages array is undefined.");
           }
         }
 
@@ -195,7 +199,7 @@ import { useStore } from 'vuex';
             return new Promise((resolve, reject) => {
               const reader = new FileReader();
               reader.onload = () => {
-                const base64Data = reader.result.split(',')[1]; // Remove the data url prefix and get the base64 encoded string
+                const base64Data = reader.result.split(',')[1];
                 resolve({
                   name: file.name,
                   content: base64Data,
@@ -204,14 +208,13 @@ import { useStore } from 'vuex';
                 });
               };
               reader.onerror = reject;
-              reader.readAsDataURL(file); // Read the file as Data URL
+              reader.readAsDataURL(file);
             });
           });
 
           try {
             const filesBase64 = await Promise.all(promises);
 
-            // Emit the socket event including the base64 encoded files
             socket.emit('assistant-request', {
               user_id: userId.value,
               message: assistantInput.value,
@@ -223,7 +226,6 @@ import { useStore } from 'vuex';
             console.error('Error reading files', error);
           }
         } else {
-          // If no files, just send the text
           socket.emit('assistant-request', {
             user_id: userId.value,
             message: assistantInput.value,
@@ -235,6 +237,7 @@ import { useStore } from 'vuex';
         uploadedFiles.value = [];
       };
 
+      // Function to create a blank slate for a new user chat.
       const newSelection = () => {
         selectedMessages.value = null;
         showSplash.value = true;
@@ -244,36 +247,32 @@ import { useStore } from 'vuex';
         uploadedFiles.value = [];
       }
 
+      // Voice streaming out of Elevenlabs for reduced wait time.
       socket.on('stream_chunk', (data) => {
         if (data.content) {
           aiResponse.value += data.content;
         }
       });
 
+      // SocketIO event listener that processes the assistant's text response and reactively updates the chat.
       socket.on('assistant-response', async (data) => {
         if (data.content) {
-          // Check if this is an update for a temporary thread or a new thread creation
           if (data.thread_id && data.thread_id.startsWith('temp_')) {
-            // Find the temporary thread in your threads array
             let tempThreadIndex = threads.value.findIndex(t => t.thread_id === data.thread_id);
             
             if (tempThreadIndex !== -1) {
-              // If found, update the temporary thread with the new data
-              threads.value[tempThreadIndex].title = data.title || "New Chat"; // Use the title from data if available
-              threads.value[tempThreadIndex].thread_id = data.thread_id; // Update with the new thread_id from the backend
+              threads.value[tempThreadIndex].title = data.title || "New Chat";
+              threads.value[tempThreadIndex].thread_id = data.thread_id;
               threads.value[tempThreadIndex].messages.push({ role: 'assistant', text: data.content });
             }
           } else if (data.thread_id) {
-            // Handling for non-temporary thread updates or new threads
             let threadIndex = threads.value.findIndex(t => t.thread_id === data.thread_id);
 
             if (threadIndex !== -1) {
-              // Existing thread found, just push the new message
               threads.value[threadIndex].messages.push({ role: 'assistant', text: data.content });
             } else {
-              // This is genuinely a new thread (not replacing a temp one)
               const newThread = {
-                title: data.title || "New Chat", // Use the title from data if available
+                title: data.title || "New Chat",
                 thread_id: data.thread_id,
                 messages: [{ role: 'assistant', text: data.content }]
               };
@@ -282,19 +281,17 @@ import { useStore } from 'vuex';
             }
           }
 
-          // Update the selected thread if it matches the thread_id in the response
           if (selectedThread.value === data.thread_id || !selectedThread.value) {
             selectedThread.value = data.thread_id;
             selectedMessages.value = threads.value.find(t => t.thread_id === data.thread_id).messages;
           }
 
-          // Optionally, refetch threads to ensure UI is up-to-date
-          await fetchUserThreads(); // Consider if necessary, as this may not be needed if you're already updating the state
-          await selectThread(data.thread_id); // May not be needed if already updating the state above
+          await fetchUserThreads();
+          await selectThread(data.thread_id);
         }
       });
 
-  
+      // Old method for sending a message to OpenAI Chat Completion API
       const sendMessage = (userMessage) => {
         if(userMessage != null)
         {
@@ -302,6 +299,7 @@ import { useStore } from 'vuex';
         }
       };
   
+      // MediaRecorder for listening to voice input, chunks user input into audio streams that continuously send to backend for fileless transfer from frontend to backend
       const startRecording = async () => {
         console.log("Start recording button clicked");
         isCalling.value = true;
@@ -324,7 +322,6 @@ import { useStore } from 'vuex';
           mediaRecorder.ondataavailable = event => {
             if (event.data.size > 0) {
               console.log(`Received audio chunk of size: ${event.data.size}`);
-              // Process the data only if the recorder is in the "recording" state
               if (mediaRecorder.state === "recording") {
                 const reader = new FileReader();
                 reader.onloadend = () => {
@@ -349,7 +346,6 @@ import { useStore } from 'vuex';
             isRecording.value = false;
           };
 
-          // Start recording with a timeslice to ensure data is available at regular intervals
           mediaRecorder.start(1000);
 
           audioRecorder.value = mediaRecorder;
@@ -358,6 +354,7 @@ import { useStore } from 'vuex';
         }
       };
   
+      // When recording stops, stop sending audio streams to backend.
       const stopRecording = () => {
         console.log("Stop recording button clicked");
         isCalling.value = false;
@@ -369,9 +366,10 @@ import { useStore } from 'vuex';
         }
       };
 
+      // Fetches user threads via MongoDB database, threads are stored in Assistants API.
       const fetchUserThreads = async () => {
         try {
-          const response = await axios.get(`https://localhost:5000/get-user-threads/${userId.value}`, {withCredentials: true});
+          const response = await axios.get(`${process.env.VUE_APP_BACKEND_URL}/get-user-threads/${userId.value}`, {withCredentials: true});
           threads.value = response.data;
           console.log("the threads value: ", threads.value)
         } catch (error) {
@@ -379,37 +377,38 @@ import { useStore } from 'vuex';
         }
       };
 
+      // When the user selects a thread, redirects the user back to the chat screen to display the latest messages in the thread.
       const selectThread = async (thread_id) => {
         selectedThread.value = thread_id;
         titlesShown.value = false;
         const thread = threads.value.find(t => t.thread_id === thread_id);
+        console.log("this is threadsh: ", thread);
         selectedThreadTitle.value = thread.title;
         console.log(selectedThreadTitle.value);
 
         if (thread && !thread.messages) {
           try {
-            const response = await axios.get(`https://localhost:5000/load-messages/${thread_id}`);
-            thread.messages = response.data; // Store messages in the thread
+            const response = await axios.get(`${process.env.VUE_APP_BACKEND_URL}/load-messages/${thread_id}`);
+            thread.messages = response.data;
             selectedMessages.value = response.data;
           } catch (error) {
             console.error("Error fetching messages for thread:", error);
           }
         } else if (thread && thread.messages) {
-          selectedMessages.value = thread.messages; // Use existing messages if already present
+          selectedMessages.value = thread.messages;
         }
       };
 
+      // When the audio stream ends from the backend, use an AudioPlayer to play the audio to the user.
       socket.on('tts_stream_full', (data) => {
           const audioData = data.audio_data;
-          // Convert base64 to Blob and then create an audio URL
-          const audioBlob = base64ToBlob(audioData, 'audio/mp3'); // Adjust MIME type if needed
+          const audioBlob = base64ToBlob(audioData, 'audio/mp3');
           const audioUrl = URL.createObjectURL(audioBlob);
-  
-          // Play the audio
           audioPlayer.value.src = audioUrl;
           audioPlayer.value.play().catch(e => console.error("Error playing audio:", e));
       });
   
+      // Converts base64 to blob for audio and file encoding.
       const base64ToBlob = (base64, mimeType) => {
           const byteCharacters = atob(base64);
           const byteNumbers = new Array(byteCharacters.length);
@@ -420,6 +419,7 @@ import { useStore } from 'vuex';
           return new Blob([byteArray], { type: mimeType });
       }
 
+      // Opens file explorer for users to select one or multiple files to add to the business chatbot.
       const triggerFileExplorer = () => {
         if (fileInput.value) {
           fileInput.value.click();
@@ -434,7 +434,8 @@ import { useStore } from 'vuex';
           console.log("No files selected.");
           return;
         }
-        // Append the new files to the existing array instead of replacing it
+
+        // Not fully utilizing Vue's reactivity, but old code may be needed in cases where file size exceeds OpenAI's file usage limits.
         // const newFiles = Array.from(files).map(file => ({ name: file.name, size: file.size }));
         uploadedFiles.value = [...uploadedFiles.value, ...Array.from(files)];
       };
@@ -443,16 +444,12 @@ import { useStore } from 'vuex';
         uploadedFiles.value = uploadedFiles.value.filter(file => file !== fileToRemove);
       };
 
-      const sendToInterpreter = () => {
-        console.log("sent to interpreter");
-      }
-
+      // Styling method that adapts to every screen so that bottom text does not get cut off.
       const autoExpand = (event) => {
         const textarea = event.target;
           textarea.style.height = 'inherit';
-        let maxHeight = 200; // Maximum height in pixels
+        let maxHeight = 200;
 
-        // Calculate the desired height
         let desiredHeight = Math.min(textarea.scrollHeight, maxHeight);
 
         textarea.style.height = `${desiredHeight}px`;
@@ -491,7 +488,6 @@ import { useStore } from 'vuex';
         fileInput,
         triggerFileExplorer,
         handleFileSelection,
-        sendToInterpreter,
         autoExpand,
         uploadedFiles,
         removeFile,

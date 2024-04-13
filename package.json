@@ -1,5 +1,5 @@
 {
-  "name": "math-quiz",
+  "name": "fbla-proj-frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,7 +7,7 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "start-frontend": "npm run serve",
-    "start-backend": "cd D:\\Projects\\Python\\math-quiz && .\\venv\\Scripts\\python run.py",
+    "start-backend": "cd D:\\Projects\\Python\\fbla-proj-backend && .\\venv\\Scripts\\python run.py",
     "start": "concurrently \"npm run start-frontend\" \"npm run start-backend\""
   },
   "dependencies": {

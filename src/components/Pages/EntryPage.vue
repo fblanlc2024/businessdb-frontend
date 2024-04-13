@@ -1,9 +1,11 @@
+<!-- Main entry screen containing the splash logo as well as the various sections of the website. -->
+
 <template>
   <header class="sticky top-0 inset-x-0 -mt-12 flex flex-wrap sm:justify-start sm:flex-nowrap z-40 bg-white text-sm dark:bg-gray-800">
     <nav class="max-w-full w-full mx-auto px-4 sm:flex sm:items-center sm:justify-between" aria-label="Global">
       <div class="flex items-center justify-between">
         <a class="flex-none" href="#">
-          <img class="w-10 h-auto rounded-md" src="@/assets/sakura_logo.png" alt="Logo">
+          <img class="w-10 h-auto rounded-full" src="@/assets/cropped_final_logo.png" alt="Logo">
         </a>
         <div class="sm:hidden">
           <button type="button" class="hs-collapse-toggle p-2 inline-flex justify-center items-center gap-x-2 rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-transparent dark:border-gray-700 dark:text-white dark:hover:bg-white/10 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600" data-hs-collapse="#navbar-image-1" aria-controls="navbar-image-1" aria-label="Toggle navigation">
@@ -61,19 +63,18 @@
     </TransitionRoot>
   </div>
   <div id="about" class="mt-12 section relative h-screen overflow-hidden">
-    <h3 class="text-lg font-semibold">About Us</h3>
-    <p>[32] Sed ut perspiciatis, unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa, quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt, explicabo. Nemo enim ipsam voluptatem, quia voluptas sit, aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos, qui ratione voluptatem sequi nesciunt, neque porro quisquam est, qui dolorem ipsum, quia dolor sit amet consectetur adipisci[ng] velit, sed quia non numquam [do] eius modi tempora inci[di]dunt, ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum[d] exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? [D]Quis autem vel eum i[r]ure reprehenderit, qui in ea voluptate velit esse, quam nihil molestiae consequatur, vel illum, qui dolorem eum fugiat, quo voluptas nulla pariatur?
-
-[33] At vero eos et accusamus et iusto odio dignissimos ducimus, qui blanditiis praesentium voluptatum deleniti atque corrupti, quos dolores et quas molestias excepturi sint, obcaecati cupiditate non provident, similique sunt in culpa, qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem reru[d]um facilis est e[r]t expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio, cumque nihil impedit, quo minus id, quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellend[a]us. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet, ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.</p>
+    <h3 class="text-3xl font-semibold text-center">About Us</h3>
+    <p class="text-lg text-center mt-10">We are a small team working on the next-generation business solution. Updates coming soon.</p>
   </div>
   
   <div id="work" class="section relative h-screen">
-    <h3> Work Section </h3>
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    <h3 class="text-3xl font-semibold text-center">Our Work</h3>
+    <p class="text-lg text-center mt-10">Our team has made several solutions in the past.</p>
   </div>
   
   <div id="blog" class="section relative h-screen">
-    <h3> Blog Section </h3>
+    <h3 class="text-3xl font-semibold text-center">Blog</h3>
+    <p class="text-lg text-center mt-10">Follow our newest ventures here.</p>
   </div>
 </template>
 
@@ -124,7 +125,7 @@ export default {
 
     const adjustScroll = () => {
         const headerHeight = document.querySelector('.sticky').offsetHeight;
-        window.scrollBy(0, -headerHeight); // Adjust scroll position
+        window.scrollBy(0, -headerHeight);
     };
 
     const navigateToSection = (sectionId) => {
@@ -182,19 +183,19 @@ export default {
 
 .animate-fadeIn {
   animation-name: fadeIn;
-  animation-duration: 1.5s;  /* Extended duration */
+  animation-duration: 1.5s;
   animation-fill-mode: forwards;
 }
 
 .animation-delay-500 {
-  animation-delay: 0.75s;  /* Extended delay for header */
+  animation-delay: 0.75s;
 }
 
 .animation-delay-1000 {
-  animation-delay: 1.5s;  /* Extended delay for body */
+  animation-delay: 1.5s;
 }
 
 .animation-delay-1500 {
-  animation-delay: 2.25s;  /* Extended delay for button */
+  animation-delay: 2.25s;
 }
 </style>

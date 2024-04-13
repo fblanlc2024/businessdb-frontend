@@ -1,3 +1,5 @@
+<!-- Account settings page, which includes username change, password change, and account deletion. -->
+
 <template>
     <NavbarComponent />
     <ChatBotComponent />
@@ -86,6 +88,7 @@
 
 <script>
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
@@ -134,12 +137,6 @@ export default {
         newUsername.value = '';
       };
 
-      const redirectToLogin = () => {
-        router.push({
-          name: 'EntryPage'
-        });
-      }
-
       const updateAccount = () => {
         usernameErrMsg.value = '';
         passwordErrMsg.value = '';
@@ -149,7 +146,7 @@ export default {
           return;
         }
 
-        axios.put('https://localhost:5000/account', {
+        axios.put(`${process.env.VUE_APP_BACKEND_URL}/account`, {
             username: username.value,
             password: currentPassword.value,
             new_username: newUsername.value,
@@ -162,7 +159,7 @@ export default {
             console.log(response.data);
             store.commit('accounts/setUsername', newUsername.value);
             isUsernameActive.value = false;
-            redirectToLogin();
+            logOut();
         })
         .catch(err => {
             if (err.response) {
@@ -185,16 +182,29 @@ export default {
         });
     }
 
+    const logOut = () => {
+      axios.post(`${process.env.VUE_APP_BACKEND_URL}/logout`, {}, { withCredentials: true })
+          .then(response => {
+          console.log(response.data.message);
+          Cookies.remove('logged_in')
+          store.dispatch('accounts/logOut');
+          router.push('/');
+      })
+          .catch(error => {
+          console.error('Logout failed:', error);
+      });
+    };
+
     const deleteAccount = () => {
         deletionErrMsg.value = '';
-        axios.delete('https://localhost:5000/account', {
+        axios.delete(`${process.env.VUE_APP_BACKEND_URL}/account`, {
           data: { username: username.value },
           withCredentials: true
         })
         .then(response => {
             console.log(response.data);
             deletionErrMsg.value = '';
-            redirectToLogin();
+            logOut();
         })
         .catch(err => {
             console.error('Error deleting account:', err);
@@ -233,9 +243,9 @@ export default {
         updateAndDelete,
         updateAccount,
         deleteAccount,
-        redirectToLogin,
         toggleVisibility,
-        cancelUsernameChange
+        cancelUsernameChange,
+        logOut
       };
     }
 };

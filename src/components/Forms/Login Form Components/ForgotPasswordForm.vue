@@ -1,7 +1,8 @@
+<!-- Form for password recovery -->
+
 <template>
   <div v-if="showForgotPassword" class="sm:mx-auto sm:w-full sm:max-w-sm">
     <form class="space-y-6" @submit.prevent="handleForgotPassword">
-      <!-- Username -->
       <div>
           <label for="forgotUsername" class="block text-sm font-medium leading-6 text-gray-900">Username</label>
           <div class="mt-2">
@@ -14,7 +15,6 @@
           <p v-if="forgotPasswordErrMsg" class="text-sm text-red-600 mt-1">{{ forgotPasswordErrMsg }}</p>
       </div>
 
-      <!-- New Password -->
       <div>
           <label for="newPassword" class="block text-sm font-medium leading-6 text-gray-900">New Password</label>
           <div class="mt-2">
@@ -22,7 +22,6 @@
           </div>
       </div>
 
-      <!-- Confirm New Password -->
       <div>
           <label for="confirmNewPassword" class="block text-sm font-medium leading-6 text-gray-900">Confirm New Password</label>
           <div class="mt-2">
@@ -35,7 +34,6 @@
           </div>
       </div>
 
-      <!-- Update Password Button -->
       <div class="mt-4">
           <button type="submit" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Update Password</button>
       </div>
@@ -66,7 +64,7 @@ export default {
         return;
       }
 
-      axios.put('https://localhost:5000/reset_password', {
+      axios.put(`${process.env.VUE_APP_BACKEND_URL}/reset_password`, {
         username: loginUsername.value,
         new_password: loginPassword.value
       })

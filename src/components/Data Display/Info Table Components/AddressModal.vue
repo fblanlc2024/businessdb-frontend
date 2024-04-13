@@ -1,18 +1,12 @@
+<!-- Modal that shows an option for adding addresses. Switches between editing addresses and adding them as two different UI modes. -->
+
 <template>
     <div>
         <TransitionRoot :show="isAddressModalOpen" as="template">
             <Dialog as="div" class="fixed inset-0 overflow-y-auto z-50">
                 <div class="flex min-h-full items-center justify-center p-4 text-center">
                     <div class="fixed inset-0 bg-black bg-opacity-50" aria-hidden="true"></div>
-                    <TransitionChild
-                        as="template"
-                        enter="duration-300 ease-out"
-                        enter-from="opacity-0 scale-95"
-                        enter-to="opacity-100 scale-100"
-                        leave="duration-200 ease-in"
-                        leave-from="opacity-100 scale-100"
-                        leave-to="opacity-0 scale-95"
-                    >
+                    <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
                         <DialogPanel class="w-full md:w-[800px] transform overflow-hiddenformErrMsg rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all dark:bg-gray-800 z-50">
                             <button @click="closeAddressModal" class="absolute top-4 left-4 bg-transparent text-black hover:text-gray-700 font-semibold text-xl leading-none transition-transform transform hover:scale-110">
                                 <XMarkIcon class="w-6 h-6 dark:text-gray-200" />
@@ -81,6 +75,7 @@ import { useStore } from 'vuex';
             const selectedIndex = inject('selectedIndex');
             const formErrMsg = inject('formErrMsg');
 
+            // Input class for error handling and error messages.
             const inputClass = (errorMsg) => {
                 return [
                 'block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm',
@@ -88,20 +83,30 @@ import { useStore } from 'vuex';
                 ];
             };
 
+            // Adds an address to the database.
+            // Collects all of the address data from the fields, then after a success refetches the business data then closes the address modal.
+            // Upon a failure, flashes an error message around the box that has a misinput field inside of it, or outside if an input field is missing.
             const addAddress = async () => {
                 console.log("calling addAddress method");
                 try {
                     const csrf_access = store.getters['accounts/getAccessCSRF'];
-                    const newAddress = { line1: address.value.line1, line2: address.value.line2, city: address.value.city, state: address.value.state, zipcode: address.value.zipcode, country: address.value.country };
+                    const newAddress = {
+                        line1: address.value.line1,
+                        line2: address.value.line2,
+                        city: address.value.city,
+                        state: address.value.state,
+                        zipcode: address.value.zipcode,
+                        country: address.value.country
+                    };
 
-                    const response = await axios.post(`https://localhost:5000/add_address/${businessId.value}`, 
-                                          { address: newAddress },
-                                          { 
-                                            headers: {
-                                                'X-CSRF-TOKEN': csrf_access
-                                            },
-                                            withCredentials: true 
-                                          });
+                    const response = await axios.post(`${process.env.VUE_APP_BACKEND_URL}/add_address/${businessId.value}`, 
+                    { address: newAddress },
+                    { 
+                    headers: {
+                        'X-CSRF-TOKEN': csrf_access
+                    },
+                    withCredentials: true 
+                    });
                     console.log(response.data);
                     fetchBusinessData();
                     closeAddressModal();
@@ -121,6 +126,7 @@ import { useStore } from 'vuex';
                 }
             };
 
+            // Function to edit an address. Extremely similar to the addAddress functionality, including the error handling.
             const editAddress = async () => {
                 formErrMsg.value = '';
                 zipcodeErrMsg.value = '';
@@ -131,7 +137,7 @@ import { useStore } from 'vuex';
                 console.log("address data edited: ", address.value);
 
                 try {
-                    const response = await axios.put(`https://localhost:5000/edit_address/${addressId}`, editedAddressData, { withCredentials: true });
+                    const response = await axios.put(`${process.env.VUE_APP_BACKEND_URL}/edit_address/${addressId}`, editedAddressData, { withCredentials: true });
                     console.log(response.data);
                     console.log("Address updated successfully");
                     fetchBusinessData();
@@ -152,6 +158,7 @@ import { useStore } from 'vuex';
                 }
             };
 
+            // If/else to switch between editing or adding an address.
             const handleAddressAction = () => {
                 if (isEditMode.value) {
                     editAddress();

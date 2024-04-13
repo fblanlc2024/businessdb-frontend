@@ -1,8 +1,9 @@
+<!-- Business form for adding business functionality -->
+
 <template>
   <div class="space-y-6">
     <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-300 text-center mt-5">Add New Business Client</h2>
 
-    <!-- Business Name -->
     <div>
       <label for="businessName" class="block text-sm font-medium text-gray-900">Business Name</label>
       <input id="businessName" v-model="businessName" required placeholder="Enter business name" class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
@@ -10,19 +11,16 @@
 
     <AddressLookup></AddressLookup>
 
-    <!-- Organization Type -->
     <div>
       <label for="organizationType" class="block text-sm font-medium text-gray-900">Organization Type</label>
       <input id="organizationType" v-model="organizationType" required placeholder="Enter organization type" class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
     </div>
 
-    <!-- Resources Available -->
     <div>
       <label for="resourcesAvailable" class="block text-sm font-medium text-gray-900">Resources Available</label>
       <input id="resourcesAvailable" v-model="resourcesAvailable" required placeholder="Enter available resources" class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
     </div>
 
-    <!-- Has Available Resources -->
     <div>
       <label for="hasAvailableResources" class="block text-sm font-medium text-gray-900">Has Available Resources Right Now?</label>
       <select id="hasAvailableResources" v-model="hasAvailableResources" required class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" :class="{'selected-text': hasAvailableResources !== ''}">
@@ -32,7 +30,6 @@
       </select>
     </div>
 
-    <!-- Contact Info -->
     <div>
       <label for="contactInfo" class="block text-sm font-medium text-gray-900">Contact Info</label>
       <input id="contactInfo" v-model="contactInfo" @input="formatPhoneNumber" required placeholder="Enter contact info" :class=inputClass(contactInfoErrMsg) class="mt-2" />
@@ -188,14 +185,13 @@ import AddressLookup from './Address Components/AddressLookup.vue';
               websiteTrafficErrMsg.value = 'Website traffic must be a valid number.';
           }
 
-          // Check if any error messages were set
           if (yearlyRevenueErrMsg.value || employeeCountErrMsg.value || customerSatisfactionErrMsg.value || websiteTrafficErrMsg.value) {
               formErrMsg.value = 'Please correct the errors before submitting.';
               return;
           }
 
           try {
-              const response = await axios.post('https://localhost:5000/add_business', businessData, { withCredentials: true });
+              const response = await axios.post(`${process.env.VUE_APP_BACKEND_URL}/add_business`, businessData, { withCredentials: true });
               console.log(response.data);
               EventBus.emit('business-added', response.data);
               EventBus.emit('close-modal');
@@ -239,6 +235,7 @@ import AddressLookup from './Address Components/AddressLookup.vue';
         }
       };
 
+      // Regex to format the phone number to only be 11 digits, like this: (123)-456-7890
       const formatPhoneNumber = () => {
         let input = contactInfo.value;
         input = input.replace(/\D/g, '');

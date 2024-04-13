@@ -1,3 +1,5 @@
+<!-- Component which is an expandable modal containing a Google Maps iFrame embed. -->
+
 <template>
     <TransitionRoot as="template" :show="isDialogOpen">
         <Dialog as="div" class="fixed inset-0 z-10 overflow-y-auto z-50" @close="closeModal">

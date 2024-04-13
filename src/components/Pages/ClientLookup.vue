@@ -1,3 +1,5 @@
+<!-- Main page for searching through the client catalogue. Includes auth protection. -->
+
 <template>
   <NavbarComponent />
   <ChatBotComponent />
@@ -121,7 +123,7 @@ import api from '../utils/api.js';
 import EventBus from '../utils/eventBus';
 
 export default {
-    name: 'PostingPage',
+    name: 'ClientLookup',
     components: {
     TransitionRoot,
     TransitionChild,
@@ -160,6 +162,7 @@ export default {
             });
         };
 
+        // Checks tokens and stops rendering the data immediately if the user is not authenticated on the page. Safety measure in case the router fails.
         const fetchCurrentUser = () => {
             const csrf_access = store.getters['accounts/getAccessCSRF'];
             if (!csrf_access) {
@@ -207,7 +210,7 @@ export default {
         };
 
         const logOut = () => {
-            axios.post('https://localhost:5000/logout', {}, { withCredentials: true })
+            axios.post(`${process.env.VUE_APP_BACKEND_URL}/logout`, {}, { withCredentials: true })
                 .then(response => {
                 console.log(response.data.message);
                 Cookies.remove('logged_in')
@@ -219,6 +222,7 @@ export default {
             });
         };
 
+        // Sets the business ref array to include the new business after it was added. This is for the flashing yellow immediately after a new business is added.
         const setBusinessCellRef = (el, business) => {
           if (el && business) {
             businessCellRefs.value[business.business_id] = el;
@@ -238,7 +242,7 @@ export default {
 
         const confirmDelete = async () => {
           if (businessToDelete.value) {
-            await axios.delete(`https://localhost:5000/delete_business/${businessToDelete.value.business_id}`)
+            await axios.delete(`${process.env.VUE_APP_BACKEND_URL}/delete_business/${businessToDelete.value.business_id}`)
               .then(response => {
                 console.log("Deleted successfully", response);
                 businesses.value = businesses.value.filter(b => b.business_id !== businessToDelete.value.business_id);
@@ -250,7 +254,7 @@ export default {
           closeDeleteModal();
       };
 
-
+      // Checking for admin status as well as whether a business was added during the select timeframe, and the navbar UI styling on page load
       onMounted(async () => {
         try {
           EventBus.on('business-added', handleBusinessAdded);
@@ -261,7 +265,6 @@ export default {
           
           EventBus.emit('setActiveLink', 'Lookup');
 
-          // Fetch current user data
           let userDataFetched = false;
           try {
             await fetchCurrentUser();
@@ -270,12 +273,10 @@ export default {
             console.error('Error fetching user data:', error);
           }
 
-          // Retry logic for admin status check
           let adminStatusCheckAttempts = 0;
           const maxAdminStatusCheckAttempts = 3;
           while (!userDataFetched && adminStatusCheckAttempts < maxAdminStatusCheckAttempts) {
             try {
-              // Retry fetch user data
               await fetchCurrentUser();
               userDataFetched = true;
             } catch (error) {
@@ -284,13 +285,11 @@ export default {
             }
           }
 
-          // Check admin status only after successfully fetching user data
           if (userDataFetched) {
             isAdmin.value = await checkAdminStatus();
           }
 
-          // Fetch businesses
-          const response = await axios.get('https://localhost:5000/api/businesses');
+          const response = await axios.get(`${process.env.VUE_APP_BACKEND_URL}/api/businesses`);
           businesses.value = response.data;
         } catch (error) {
           console.error('Error during initial data fetch:', error);
@@ -302,6 +301,7 @@ export default {
         EventBus.off('business-added', handleBusinessAdded);
       });
 
+      // Resorts businesses after client types in autocomplete
       const sortedAndFilteredBusinesses = computed(() => {
         if (!businesses.value) return [];
 
@@ -328,20 +328,19 @@ export default {
         }
 
         const handleBusinessAdded = (business) => {
-          console.log('New business added:', business);
-          businesses.value.push(business);
-          highlightBusinessId.value = business.business_id;
+            console.log('New business added:', business);
+            businesses.value.push(business);
+            highlightBusinessId.value = business.business_id;
 
-          // Remove highlight after a delay
-          setTimeout(() => {
-            highlightBusinessId.value = null;
-          }, 4000);
-          nextTick(() => {
-            const businessCell = businessCellRefs.value[business.business_id];
-            if (businessCell) {
-              businessCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-          });
+            setTimeout(() => {
+              highlightBusinessId.value = null;
+            }, 4000);
+            nextTick(() => {
+              const businessCell = businessCellRefs.value[business.business_id];
+              if (businessCell) {
+                businessCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            });
         };
 
 
@@ -393,18 +392,16 @@ export default {
   align-items: center;
 }
 
-/* Modal Background */
 .dialog-background {
-  position: fixed; /* Fix the position */
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  overflow-y: auto; /* Enable scrolling inside the modal */
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  overflow-y: auto;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
-/* Modal Content */
 .dialog-content {
   position: relative;
   background: white;

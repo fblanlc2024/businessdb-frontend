@@ -1,9 +1,11 @@
+<!-- Navbar component for the main part of the application, not the entry navbar. -->
+
 <template>
   <header class="sticky top-0 inset-x-0 -mt-12 flex flex-wrap sm:justify-start sm:flex-nowrap z-40 bg-white text-sm  dark:bg-gray-800">
     <nav class="max-w-full w-full mx-auto px-4 sm:flex sm:items-center sm:justify-between" aria-label="Global">
       <div class="flex items-center justify-between">
         <a class="flex-none" href="#">
-          <img class="w-10 h-auto rounded-md" src="@/assets/sakura_logo.png" alt="Logo">
+          <img class="w-10 h-auto rounded-full" src="@/assets/cropped_final_logo.png" alt="Logo">
         </a>
         <div class="sm:hidden">
           <button type="button" class="hs-collapse-toggle p-2 inline-flex justify-center items-center gap-x-2 rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-transparent dark:border-gray-700 dark:text-white dark:hover:bg-white/10 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600" data-hs-collapse="#navbar-image-1" aria-controls="navbar-image-1" aria-label="Toggle navigation">
@@ -18,7 +20,7 @@
             class="font-medium cursor-pointer"
             :class="{'text-blue-500': activeLink === 'Lookup', 'text-gray-600 hover:text-gray-400 dark:text-gray-400 dark:hover:text-gray-500': activeLink !== 'Lookup'}"
             aria-current="page"
-            @click.prevent="setActiveLink('Lookup'), redirectToPage('PostingPage')"
+            @click.prevent="setActiveLink('Lookup'), redirectToPage('ClientLookup')"
           >Lookup</a>
 
           <a
@@ -72,7 +74,7 @@ export default {
     };
 
     const headerText = computed(() => {
-      if (route.name === 'PostingPage') {
+      if (route.name === 'ClientLookup') {
         return 'Client Lookup';
       }
       if (route.name === 'ManageAccount') {
@@ -82,7 +84,7 @@ export default {
     });
 
     const logOut = () => {
-        axios.post('https://localhost:5000/logout', {}, { withCredentials: true })
+        axios.post(`${process.env.VUE_APP_BACKEND_URL}/logout`, {}, { withCredentials: true })
             .then(response => {
             console.log(response.data.message);
             Cookies.remove('logged_in')

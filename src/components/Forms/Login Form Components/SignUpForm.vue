@@ -1,6 +1,7 @@
+<!-- Sign up form -->
+
 <template>
   <form v-if="showSignup" class="space-y-6" @submit.prevent="handleSignup">
-    <!-- Username -->
     <div>
         <label for="signupUsername" class="block text-sm font-medium leading-6 text-gray-900">Username</label>
         <div class="mt-2">
@@ -8,7 +9,6 @@
         </div>
     </div>
 
-    <!-- Password -->
     <div>
         <label for="signupPassword" class="block text-sm font-medium leading-6 text-gray-900">Password</label>
         <div class="mt-2">
@@ -16,7 +16,6 @@
         </div>
     </div>
 
-    <!-- Confirm Password -->
     <div>
         <label for="confirmPassword" class="block text-sm font-medium leading-6 text-gray-900">Confirm Password</label>
         <div class="mt-2">
@@ -30,7 +29,6 @@
         <p v-if="signupErrMsg" class="text-sm text-red-600 mt-1">{{ signupErrMsg }}</p>
     </div>
 
-    <!-- Signup Button -->
     <div class="mt-4">
         <button type="submit" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Sign up</button>
     </div>
@@ -58,7 +56,7 @@ export default {
         signupErrMsg.value = 'Passwords do not match.'
         return;
       }
-      axios.post('https://localhost:5000/account', {
+      axios.post(`${process.env.VUE_APP_BACKEND_URL}/account`, {
           username: signupUsername.value,
           password: signupPassword.value
       })

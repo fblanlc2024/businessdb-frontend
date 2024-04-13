@@ -1,3 +1,5 @@
+<!-- Google Login Button - redirectso to Google OAuth -->
+
 <template>
   <div class="flex items-center justify-center mt-6 space-x-4 gap-2">
     <button type="button" @click="redirectToGoogleAuth" class="text-white bg-[#4285F4] hover:bg-[#4285F4]/90 focus:ring-4 focus:outline-none focus:ring-[#4285F4]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#4285F4]/55 me-2 mt-2 -mb-4">
@@ -17,7 +19,7 @@ export default {
   setup() {
 
     const store = useStore();
-    const googleOAuthEndpoint = 'https://localhost:5000/login';
+    const googleOAuthEndpoint = `${process.env.VUE_APP_BACKEND_URL}/login`;
 
     const redirectToGoogleAuth = () => {
       store.commit('accounts/setGoogleLogin', true);
