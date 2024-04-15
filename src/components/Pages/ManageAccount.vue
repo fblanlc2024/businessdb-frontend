@@ -79,7 +79,7 @@
               </svg>
               Proceed with caution
             </p>
-            <p class="mt-2">Make sure to back up your data! After deletion, you cannot recover your account.</p>
+            <p class="mt-2">Make sure to back up your data. After deletion, you cannot recover your account.</p>
             <button @click="deleteAccount()" class="ml-auto text-sm font-semibold text-rose-600 underline decoration-2">Continue with deletion</button>
           </div>
         </div>
