@@ -29,5 +29,5 @@ npm run lint
 ## Technologies Utilized
 | Technology | Description |
 | - | - |
-| ![Static Badge](https://img.shields.io/badge/VueJS-61DBFB?style=for-the-badge&logo=Vue.js&labelColor=black) | Frontend materials |
-| ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white) | Tailwind CSS is a utility-first CSS framework for rapidly building modern websites without ever leaving your HTML                        |
+| ![Static Badge](https://img.shields.io/badge/VueJS-61DBFB?style=for-the-badge&logo=Vue.js&labelColor=black) | VueJS is a utility-first framework for rapidly building modern websites without ever leaving your HTML                        |
+| ![Static Badge](https://img.shields.io/badge/TailwindCSS-61DBFB?style=for-the-badge&logo=tailwindcss&labelColor=black) | Tailwind CSS is a utility-first CSS framework for rapidly building modern websites without ever leaving your HTML                        |
