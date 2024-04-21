@@ -1,7 +1,7 @@
 # FBLA Submission - Frontend
 
 ## Overview
-This is our frontend code for our FBLA submission. Installation instructions are down below.
+This is our frontend code for our 2024 FBLA Coding and Programming submission. Installation instructions are down below.
 
 ## Project Setup
 
